@@ -1,4 +1,5 @@
 #pragma once
+#pragma once
 #include <string>
 #include <map>
 #include <vector>
@@ -27,24 +28,27 @@ private:
     map<string, vector<string>> genre_map;//map for genre value: count of games in each genre
     //map<int, GameNode*> game_i;//map for game with key as int representation of game
     map<string, GameNode*> game_s;//map for game with key as string and value as int representation
-    map<string, vector<pair<string,int>>> I_graph;//internal graph
+    map<string, vector<pair<string, int>>> I_graph;//internal graph
 public:
-    void incertLink(Game game);
+    void insertLink(Game game);
     vector<string> TopThreePlatform(int option);
     void searchGame(string gameName);
+    GraphAdjList<string, string> generateGraph(string gameName);
     AdjacencyList() { counter = 0; }
 };
-void AdjacencyList::incertLink(Game game)
+void AdjacencyList::insertLink(Game game)
 {
+    //add to platform if not exist, add game name to each platform
     if (platform_map.find(game.getPlatformType()) == platform_map.end())
     {
         vector<string> temp = { game.getTitle() };
         platform_map.insert(make_pair(game.getPlatformType(), temp));//add new platform
     }
     else
-    {   
-        platform_map[game.getPlatformType()].push_back(game.getTitle());//increment game count for this platform
+    {
+        platform_map[game.getPlatformType()].push_back(game.getTitle());//push game to this platform
     }
+    //add to genre if not exist, add game name to each genre type
     for (string genre : game.getGameGenre())
     {
         if (genre_map.find(genre) == genre_map.end())
@@ -54,13 +58,13 @@ void AdjacencyList::incertLink(Game game)
         }
         else
         {
-            genre_map[genre].push_back(game.getTitle());//increment game count for this genre
+            genre_map[genre].push_back(game.getTitle());//increment game to this genre
         }
     }
     if (game_s.find(game.getTitle()) == game_s.end())
     {
         counter++;
-        game_s.insert(make_pair(game.getTitle(), new GameNode(game.getTitle(), game.getRating(),game.getGameGenre())));//add game node
+        game_s.insert(make_pair(game.getTitle(), new GameNode(game.getTitle(), game.getRating(), game.getGameGenre())));//add game node
         game_s[game.getTitle()]->platforms.push_back(game.getPlatformType());//put in the platform for this game
     }
     else
@@ -74,7 +78,7 @@ void AdjacencyList::incertLink(Game game)
         {
             I_graph[game.getTitle()].push_back(make_pair(gm, 5));
         }
-        
+
     }
 }
 vector<string> AdjacencyList::TopThreePlatform(int option)
@@ -91,7 +95,7 @@ vector<string> AdjacencyList::TopThreePlatform(int option)
         //most games
         for (pair<string, vector<string>> pfpair : platform_map)
         {
-            rank.insert(make_pair(pfpair.second.size(),pfpair.first));//fix me: platform with same amount of games
+            rank.insert(make_pair(pfpair.second.size(), pfpair.first));//fix me: platform with same amount of games
         }
 
     }
@@ -119,4 +123,25 @@ void AdjacencyList::searchGame(string gameName)
             cout << pf << endl;
         }
     }
+}
+GraphAdjList<string, string> AdjacencyList::generateGraph(string gameName)
+{
+    GraphAdjList<string, string> graph;
+    map<string, Color> platform_colors;
+    for (pair<string, vector<pair<string, int>>> graphNode : I_graph)
+    {
+        graph.addVertex(graphNode.first);
+        for (pair<string, int > to : graphNode.second)
+        {
+            graph.addVertex(to.first);
+            graph.addEdge(graphNode.first, to.first);
+            Color color;
+            color.setBlue(rand() % 255);
+            color.setGreen(rand() % 255);
+            color.setRed(rand() % 255);
+            platform_colors.emplace((string)graphNode.first, color);//fix me:should be platform color not game title
+            graph.getEdge(graphNode.first, to.first).setColor(platform_colors.at(graphNode.first));
+        }
+    }
+    return graph;
 }

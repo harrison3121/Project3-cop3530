@@ -1,10 +1,10 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <map>
-#include <set>
 #include <stdlib.h>
-
+#include "AdjacencyList.h"
 #include "GraphAdjList.h"
 #include "DataSource.h"
 #include "Bridges.h"
@@ -13,83 +13,29 @@
 using namespace std;
 using namespace bridges;
 
-
-Color brighten(Color color)
+//brighten the color by adding 
+Color brighten(Color color, int degree)
 {
     int b = color.getBlue();
     int r = color.getRed();
     int g = color.getGreen();
-    (r <= 235) ? r += 20 : r = 255;
-    (g <= 235) ? g += 20 : g = 255;
-    (b <= 235) ? b += 20 : b = 255;
+    (r <= 255 - degree) ? r += degree : r = 255;
+    (g <= 255 - degree) ? g += degree : g = 255;
+    (b <= 255 - degree) ? b += degree : b = 255;
     Color ncolor(r, g, b);
     return ncolor;
 }
 
-struct CustomEdge {
-    Color color;
-    string from;
-    string to;
-    double weight;
-    string platform;
-};
-
-
-struct AdjacencyList {
-
-    map<string, vector<CustomEdge>> outgoing;
-    map<string, vector<CustomEdge>> incoming;
-    map<string, Color> platforms;
-
-
-    GraphAdjList<string, string> convert() {
-        GraphAdjList<string, string> graph;
-        for (auto i : outgoing) {
-            graph.addVertex(i.first);
-            if (platforms.find(i.first) != platforms.end()) {graph.getVertex(i.first)->setShape(STAR);}
-            for (auto j : i.second) {
-                graph.addVertex(j.to);
-                graph.addEdge(i.first, j.to);
-                graph.getEdge(i.first, j.to).setLabel(to_string(j.weight));
-                graph.getEdge(i.first, j.to).setColor(platforms.at(j.platform));
-                if (platforms.find(j.to) != platforms.end()) { graph.getVertex(j.to)->setShape(STAR); }
-            }
-        }
-        return graph;
-    }
-    void addNode(string node) {
-        vector<CustomEdge> v;
-        vector<CustomEdge> v2;
-        outgoing.emplace(node, v);
-        incoming.emplace(node, v2);
-    }
-    void addPlatform(string platform) {
-        if (platforms.find(platform) == platforms.end()) {
-            addNode(platform);
-            Color color;
-            color.setBlue(rand() % 255);
-            color.setGreen(rand() % 255);
-            color.setRed(rand() % 255);
-            platforms.emplace(platform, brighten(color));
-
-        }
-    }
-    void addEdge(string from, string to, double rating = 0.0f, string platform = "PC") {
-        CustomEdge edge;
-        edge.from = from;
-        edge.to = to;
-        double weight = 10.0 - rating;
-        edge.weight = weight;
-        edge.platform = platform;
-        outgoing.at(from).push_back(edge);
-        incoming.at(to).push_back(edge);
-    }
-};
-
-
 int main() {
+    //find top rating games on the same platform
+    // find top rating games 
+    //prompt for input game name
+    string name;
+    cout << "enter game name" << endl;
+    cin >> name;
+
     // Initialize Bridges
-    Bridges bridges(1, "hlucas", "1631129020485");
+    Bridges bridges(1, "shawnwang", "1204195056134");
 
     // Set title for visualization
     bridges.setTitle("Video Game Graph");
@@ -100,27 +46,66 @@ int main() {
     // Get the video game data
     vector<Game> games = ds.getGameData();
 
-    AdjacencyList graph;
-    
+    // Graph of video games
+    //GraphAdjList<string, string> graph;
 
     //set of all platforms
-    map<string, Color> platforms;
-    // Add vertices to the graph
-    for (int i = 0; i < 1000; i++) {
+    //map<string, Color> platforms;
+    //// Add vertices to the graph
+    //vector<string> genres;
+    //for (int i = 0;i < 1000;i++)
+    //{
+    //    if (games[i].getTitle() == name)
+    //    {
+    //        for (string genre : games[i].getGameGenre())
+    //            genres.push_back(genre);
+    //    }
+    //}
+    AdjacencyList test;
+    for (int i = 0;i < 1000;i++) {
         Game game = games[i];
-        graph.addNode(game.getTitle());
-        graph.addPlatform(game.getPlatformType());
-        graph.addEdge(game.getTitle(), game.getPlatformType(), game.getRating(), game.getPlatformType());
+        test.insertLink(game);
+        //for (string genre : game.getGameGenre())
+        //{
+        //    if (count(genres.begin(), genres.end(), genre) != 0) 
+        //    {
+        //        graph.addVertex(game.getTitle(), genre);
+        //        graph.addVertex(genre);
+        //        Color color;
+        //        color.setBlue(rand() % 255);
+        //        color.setGreen(rand() % 255);
+        //        color.setRed(rand() % 255);
+        //        platforms.emplace((string)genre, color);
+        //        graph.addEdge(game.getTitle(), genre);
+        //        graph.getEdge(game.getTitle(), genre).setColor(platforms.at(genre));
+        //        graph.getVertex(genre)->setShape(STAR);
+        //        graph.getVertex(genre)->setSize(30);
+        //        graph.getVertex(genre)->setColor(brighten(platforms.at(genre), 50));
+        //        graph.getVertex(game.getTitle())->setColor(brighten(platforms.at(genre), 20));
+        //    }
+        //}
+        //graph.addVertex(game.getTitle(), game.getPlatformType());
+        //graph.addVertex(game.getPlatformType());
+        //Color color;
+        //color.setBlue(rand() % 255);
+        //color.setGreen(rand() % 255);
+        //color.setRed(rand() % 255);
+        //platforms.emplace((string)game.getPlatformType(), color);
+        //graph.addEdge(game.getTitle(), game.getPlatformType());
+        //graph.getEdge(game.getTitle(), game.getPlatformType()).setColor(platforms.at(game.getPlatformType()));
+        //graph.getVertex(game.getPlatformType())->setShape(STAR);
+        //graph.getVertex(game.getPlatformType())->setSize(30);
+        //graph.getVertex(game.getPlatformType())->setColor(brighten(platforms.at(game.getPlatformType()), 50));
+        //graph.getVertex(game.getTitle())->setColor(brighten(platforms.at(game.getPlatformType()),20));
 
     }
-   
-
+    test.searchGame(name);
+    GraphAdjList<string, string> graph = test.generateGraph(name);
 
 
 
     // Visualize the graph
-    GraphAdjList<string, string>graph2 = graph.convert();
-    bridges.setDataStructure(&graph2);
+    bridges.setDataStructure(&graph);
     bridges.visualize();
 
     return 0;
