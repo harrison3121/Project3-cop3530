@@ -45,6 +45,7 @@ public:
     void searchGame(string gameName);
     bool createEdgesOne(string game, string d);
     GraphAdjMatrix<string, string>* generateGraph(string gameName);
+    GraphAdjMatrix<string, string>* generateGraphOne(string gameName);
     AdjacencyMatrix(int t);
 
 };
@@ -156,6 +157,32 @@ bool AdjacencyMatrix::similar(GN* from, GN* to, string d) {
         }
         return false;
     }
+    else if (d == "all") {
+        vector<string> platforms;
+        vector<string> genres;
+        for (auto i : from->platforms) {
+            for (auto j : to->platforms) {
+                if (i == j) {
+                    platforms.push_back(i);
+                }
+            }
+        }
+        for (auto i : from->genres) {
+            for (auto j : to->genres) {
+                if (i == j) {
+                    genres.push_back(i);
+                }
+            }
+        }
+        if (genres.size() != from->genres.size()) {
+            return false;
+        }
+
+        if (platforms.size() != 0 && genres.size() != 0) {
+            return true;
+        }
+        return false;
+    }
 }
 
 bool AdjacencyMatrix::createEdgesOne(string game, string d) {
@@ -169,7 +196,7 @@ bool AdjacencyMatrix::createEdgesOne(string game, string d) {
         GN* to = index.find(tos)->second;
         GN* from = index.find(game)->second;
         //cout << ind << endl;
-        if (similar(from, to, "genre")) {
+        if (similar(from, to, "both")) {
             matrix[ind][j] = 1;
         }
         
@@ -191,6 +218,7 @@ GraphAdjMatrix<string, string>* AdjacencyMatrix::generateGraph(string gameName) 
             c++;
             if (v[j] == 1) {
                 //cout << j ;
+                
                 graph->addVertex(altindex[j]);
                 graph->addEdge(p.first, altindex[j], 5);
             }
@@ -199,6 +227,27 @@ GraphAdjMatrix<string, string>* AdjacencyMatrix::generateGraph(string gameName) 
     
     return graph;
 }
+
+GraphAdjMatrix<string, string>* AdjacencyMatrix::generateGraphOne(string gameName) {
+    GraphAdjMatrix<string, string>* graph = new GraphAdjMatrix<string, string>();
+    int ind = index.find(gameName)->second->index;
+    int c = 0;
+    string name = index.find(gameName)->second->title;
+    graph->addVertex(name);
+    for (auto t : matrix[ind]) {
+        if (t == 1) {
+            //cout << j ;
+
+            graph->addVertex(altindex[c]);
+            graph->addEdge(name, altindex[c], 5);
+        }
+
+        c++;
+    }
+
+    return graph;
+}
+
 
 
 
