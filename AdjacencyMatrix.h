@@ -41,8 +41,9 @@ private:
     vector<vector<int>> matrix;//internal graph
 public:
     void insertGame(Game game);
-    bool similar(GN* from, GN* to, string d);
+    int similar(GN* from, GN* to, string d);
     //vector<string> TopThreePlatform(int option);
+    bool hasSameGenre(const vector<string>& vec1, const vector<string>& vec2);
     void searchGame(string gameName);
     bool createEdgesOne(string game, string d);
     GraphAdjList<string, string>* generateGraph(string gameName);
@@ -80,136 +81,94 @@ void AdjacencyMatrix::insertGame(Game game) {
     vector<string> v;
     GN* g = new GN(game.getTitle(), game.getRating(), v, counter);
 
-    vector<string> v1;
-    platform_map.emplace(game.getPlatformType(), v1);   
-    platform_map.at(game.getPlatformType()).push_back(game.getTitle());   
-
-    for (const auto& genre : game.getGameGenre()) {
-        vector<string> v2;
-        genre_map.emplace(make_pair(genre, v2));
-        genre_map.at(genre).push_back(game.getTitle());
-        g->genres.push_back(genre);
+    if (platform_map.find(game.getPlatformType()) == platform_map.end())
+    {
+        vector<string> temp = { game.getTitle() };
+        platform_map.insert(make_pair(game.getPlatformType(), temp));//add new platform
     }
-
+    else
+    {
+        platform_map[game.getPlatformType()].push_back(game.getTitle());//push game to this platform
+    }
+    for (string genre : game.getGameGenre())
+    {
+        if (genre_map.find(genre) == genre_map.end())
+        {
+            vector<string> temp = { game.getTitle() };
+            genre_map.insert(make_pair(genre, temp));//add new genre
+        }
+        else
+        {
+            genre_map[genre].push_back(game.getTitle());//increment game to this genre
+        }
+    }
     
-    g->platforms.push_back(game.getPlatformType());
+    //g->platforms.emplace(game.getPlatformType());
     
-    index.emplace(game.getTitle(), g);
+    //index.emplace(game.getTitle(), g);
     altindex.emplace(counter, game.getTitle());
         
+    if (index.find(game.getTitle()) == index.end())
+    {
+        index.emplace(game.getTitle(), g);//add game node
+        index[game.getTitle()]->platforms.push_back(game.getPlatformType());//put in the platform for this game
+    }
+    else
+    {
+        index[game.getTitle()]->platforms.push_back(game.getPlatformType());//add addition platform to this game
+
+    }
     
 
     
     counter++;
 }
     
-bool AdjacencyMatrix::similar(GN* from, GN* to, string d) {
-    if (d == "both") {
-        vector<string> platforms;
-        vector<string> genres;
-        for (auto i : from->platforms) {
-            for (auto j : to->platforms) {
-                if (i == j) {
-                    platforms.push_back(i);
-                }
-            }
-        }
-        for (auto i : from->genres) {
-            for (auto j : to->genres) {
-                if (i == j) {
-                    genres.push_back(i);
-                }
-            }
-        }
 
-        if (platforms.size() != 0 && genres.size() != 0) {
+bool AdjacencyMatrix::hasSameGenre(const vector<string>& vec1, const vector<string>& vec2)
+{
+    unordered_set<string> set1(vec1.begin(), vec1.end());
+    for (string genre : vec2)
+    {
+        if (set1.count(genre) > 0)
             return true;
-        }
-        return false;
     }
-    else if (d == "platform") {
-        vector<string> platforms;
-        for (auto i : from->platforms) {
-            for (auto j : to->platforms) {
-                if (i == j) {
-                    platforms.push_back(i);
-                }
-            }
-        }
-
-        if (platforms.size() != 0) {
-            return true;
-        }
-        return false;
-    }
-    else if (d == "genre") {
-        vector<string> genres;
-
-        for (auto i : from->genres) {
-            for (auto j : to->genres) {
-                if (i == j) {
-                    genres.push_back(i);
-                }
-            }
-        }
-
-        if (genres.size() != 0) {
-            return true;
-        }
-        return false;
-    }
-    else if (d == "all") {
-        vector<string> platforms;
-        vector<string> genres;
-        for (auto i : from->platforms) {
-            for (auto j : to->platforms) {
-                if (i == j) {
-                    platforms.push_back(i);
-                }
-            }
-        }
-        for (auto i : from->genres) {
-            for (auto j : to->genres) {
-                if (i == j) {
-                    genres.push_back(i);
-                }
-            }
-        }
-        if (genres.size() != from->genres.size()) {
-            return false;
-        }
-
-        if (platforms.size() != 0 && genres.size() != 0) {
-            return true;
-        }
-        return false;
-    }
+    return false;
 }
+
+
 
 bool AdjacencyMatrix::createEdgesOne(string game, string d) {
     if (index.find(game) == index.end()) {
         return false;
     }
-    int ind = index.find(game)->second->index;
-    vector<int> v = matrix[ind];
-    for (int j = 0; j < total; j++) {
-        string tos = altindex.find(j)->second;
-        GN* to = index.find(tos)->second;
-        GN* from = index.find(game)->second;
-        //cout << ind << endl;
-        if (similar(from, to, "both")) {
-            matrix[ind][j] = 1;
+    GN* from = index[game];
+    for (string platform : from->platforms) {
+        for (string gm : platform_map[platform]) {
+            int i = index[game]->index;
+            int j = index[gm]->index;
+            if (gm == from->title) {
+                continue;
+            }
+            if (index[gm]->genres == index[from->title]->genres) {
+                //cout << "***************truetruesame**********************" << gm << "  " << gm << endl;
+                matrix[i][j] = 5;
+            }
+            else if (hasSameGenre(index[gm]->genres, index[from->title]->genres)) {
+                //cout << "atleast one match**************" << gm << "  " << gm << endl;
+                matrix[i][j] = 1;
+            }
         }
-        
-        
-
     }
+      
+
     return true;
 }
 
 
 GraphAdjList<string, string>* AdjacencyMatrix::generateGraph(string gameName) {
     GraphAdjList<string, string>* graph = new GraphAdjList<string, string>();
+    map<string, Color> platform_colors;
     for (auto p : index) {
         int c = 0;
         graph->addVertex(p.first);
@@ -231,18 +190,28 @@ GraphAdjList<string, string>* AdjacencyMatrix::generateGraph(string gameName) {
 
 GraphAdjList<string, string>* AdjacencyMatrix::generateGraphOne(string gameName) {
     GraphAdjList<string, string>* graph = new GraphAdjList<string, string>();
+    map<string, Color> platform_colors;
     int ind = index.find(gameName)->second->index;
     int c = 0;
-
+    //cout<<
     graph->addVertex(gameName);
     graph->getVertex(gameName)->setShape(STAR);
     graph->getVertex(gameName)->setSize(30);
     for (auto t : matrix[ind]) {
-        if (t == 1) {
+        if (t != 0) {
             //cout << c<<endl ;
-            GN* to = index.at(altindex[c]);
+            GN* to = index[altindex[c]];
             graph->addVertex(altindex[c]);
+            graph->getVertex(altindex[c])->setSize(t*5+to->rating*3);
+            graph->getVertex(altindex[c])->setColor(getRatingColor(to->rating));
             graph->addEdge(gameName, altindex[c]);
+            Color color;
+            color.setBlue(rand() % 255);
+            color.setGreen(rand() % 255);
+            color.setRed(rand() % 255);
+            platform_colors.emplace((string)gameName, color);
+            graph->getEdge(gameName, altindex[c]).setColor(platform_colors.at(gameName));
+
         }
 
         c++;
