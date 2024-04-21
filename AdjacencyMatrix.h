@@ -5,6 +5,7 @@
 #include <map>
 #include <algorithm>
 #include "GraphAdjMatrix.h" 
+#include "GraphAdjList.h" 
 #include "Bridges.h"
 #include "Array1D.h"
 #include "DataSource.h"
@@ -44,8 +45,8 @@ public:
     //vector<string> TopThreePlatform(int option);
     void searchGame(string gameName);
     bool createEdgesOne(string game, string d);
-    GraphAdjMatrix<string, string>* generateGraph(string gameName);
-    GraphAdjMatrix<string, string>* generateGraphOne(string gameName);
+    GraphAdjList<string, string>* generateGraph(string gameName);
+    GraphAdjList<string, string>* generateGraphOne(string gameName);
     AdjacencyMatrix(int t);
 
 };
@@ -207,8 +208,8 @@ bool AdjacencyMatrix::createEdgesOne(string game, string d) {
 }
 
 
-GraphAdjMatrix<string, string>* AdjacencyMatrix::generateGraph(string gameName) {
-    GraphAdjMatrix<string, string>* graph = new GraphAdjMatrix<string, string>();
+GraphAdjList<string, string>* AdjacencyMatrix::generateGraph(string gameName) {
+    GraphAdjList<string, string>* graph = new GraphAdjList<string, string>();
     for (auto p : index) {
         int c = 0;
         graph->addVertex(p.first);
@@ -220,7 +221,7 @@ GraphAdjMatrix<string, string>* AdjacencyMatrix::generateGraph(string gameName) 
                 //cout << j ;
                 
                 graph->addVertex(altindex[j]);
-                graph->addEdge(p.first, altindex[j], 5);
+                graph->addEdge(p.first, altindex[j]);
             }
         }
     }
@@ -228,18 +229,20 @@ GraphAdjMatrix<string, string>* AdjacencyMatrix::generateGraph(string gameName) 
     return graph;
 }
 
-GraphAdjMatrix<string, string>* AdjacencyMatrix::generateGraphOne(string gameName) {
-    GraphAdjMatrix<string, string>* graph = new GraphAdjMatrix<string, string>();
+GraphAdjList<string, string>* AdjacencyMatrix::generateGraphOne(string gameName) {
+    GraphAdjList<string, string>* graph = new GraphAdjList<string, string>();
     int ind = index.find(gameName)->second->index;
     int c = 0;
-    string name = index.find(gameName)->second->title;
-    graph->addVertex(name);
+
+    graph->addVertex(gameName);
+    graph->getVertex(gameName)->setShape(STAR);
+    graph->getVertex(gameName)->setSize(30);
     for (auto t : matrix[ind]) {
         if (t == 1) {
-            //cout << j ;
-
+            //cout << c<<endl ;
+            GN* to = index.at(altindex[c]);
             graph->addVertex(altindex[c]);
-            graph->addEdge(name, altindex[c], 5);
+            graph->addEdge(gameName, altindex[c]);
         }
 
         c++;
