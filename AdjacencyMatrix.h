@@ -40,10 +40,10 @@ private:
     vector<vector<int>> matrix;//internal graph
 public:
     void insertGame(Game game);
-    bool similar(GN* from, GN* to);
+    bool similar(GN* from, GN* to, string d);
     //vector<string> TopThreePlatform(int option);
     void searchGame(string gameName);
-    void createEdgesOne(string game);
+    bool createEdgesOne(string game, string d);
     GraphAdjMatrix<string, string>* generateGraph(string gameName);
     AdjacencyMatrix(int t);
 
@@ -73,81 +73,110 @@ void AdjacencyMatrix::searchGame(string gameName) {
 }
 
 void AdjacencyMatrix::insertGame(Game game) {
-    if (index.find(game.getTitle()) == index.end()) {
 
-        vector<string> v1;
-        platform_map.emplace(game.getPlatformType(), v1);   
-        platform_map.at(game.getPlatformType()).push_back(game.getTitle());   
 
-        for (const auto& genre : game.getGameGenre()) {
-            vector<string> v2;
-            genre_map.emplace(make_pair(genre, v2));
-            genre_map.at(genre).push_back(game.getTitle());
-        }
+    vector<string> v;
+    GN* g = new GN(game.getTitle(), game.getRating(), v, counter);
 
-        vector<string> v;
-        GN* g = new GN(game.getTitle(), game.getRating(), v, counter);
-        g->platforms.push_back(game.getPlatformType());
-        index.emplace(game.getTitle(), g);
-        altindex.emplace(counter, game.getTitle());
-        counter++;
+    vector<string> v1;
+    platform_map.emplace(game.getPlatformType(), v1);   
+    platform_map.at(game.getPlatformType()).push_back(game.getTitle());   
+
+    for (const auto& genre : game.getGameGenre()) {
+        vector<string> v2;
+        genre_map.emplace(make_pair(genre, v2));
+        genre_map.at(genre).push_back(game.getTitle());
+        g->genres.push_back(genre);
     }
-    else {
-        vector<string> v1;
-        platform_map.emplace(game.getPlatformType(), v1);
-        platform_map.at(game.getPlatformType()).push_back(game.getTitle());
 
-        vector<string> v;
-        GN* g = new GN(game.getTitle(), game.getRating(), v, counter);
-        g->platforms.push_back(game.getPlatformType());
-        index.emplace(game.getTitle(), g);
-        altindex.emplace(counter, game.getTitle());
-        counter++;
-
-    }
     
+    g->platforms.push_back(game.getPlatformType());
+    
+    index.emplace(game.getTitle(), g);
+    altindex.emplace(counter, game.getTitle());
+        
+    
+
+    
+    counter++;
 }
     
-bool AdjacencyMatrix::similar(GN* from, GN* to) {
-    vector<string> platforms;
-    vector<string> genres;
-    for (auto i : from->platforms) {
-        for (auto j : to->platforms) {
-            if (i == j) {
-                platforms.push_back(i);
+bool AdjacencyMatrix::similar(GN* from, GN* to, string d) {
+    if (d == "both") {
+        vector<string> platforms;
+        vector<string> genres;
+        for (auto i : from->platforms) {
+            for (auto j : to->platforms) {
+                if (i == j) {
+                    platforms.push_back(i);
+                }
             }
         }
-    }
-    for (auto i : from->genres) {
-        for (auto j : to->genres) {
-            if (i == j) {
-                genres.push_back(i);
+        for (auto i : from->genres) {
+            for (auto j : to->genres) {
+                if (i == j) {
+                    genres.push_back(i);
+                }
             }
         }
-    }
 
-    if (platforms.size() != 0 && genres.size() != 0) {
-        return true;
+        if (platforms.size() != 0 && genres.size() != 0) {
+            return true;
+        }
+        return false;
     }
-    return false;
+    else if (d == "platform") {
+        vector<string> platforms;
+        for (auto i : from->platforms) {
+            for (auto j : to->platforms) {
+                if (i == j) {
+                    platforms.push_back(i);
+                }
+            }
+        }
+
+        if (platforms.size() != 0) {
+            return true;
+        }
+        return false;
+    }
+    else if (d == "genre") {
+        vector<string> genres;
+
+        for (auto i : from->genres) {
+            for (auto j : to->genres) {
+                if (i == j) {
+                    genres.push_back(i);
+                }
+            }
+        }
+
+        if (genres.size() != 0) {
+            return true;
+        }
+        return false;
+    }
 }
 
-void AdjacencyMatrix::createEdgesOne(string game) {
+bool AdjacencyMatrix::createEdgesOne(string game, string d) {
+    if (index.find(game) == index.end()) {
+        return false;
+    }
     int ind = index.find(game)->second->index;
     vector<int> v = matrix[ind];
     for (int j = 0; j < total; j++) {
-        if (altindex.find(j) != altindex.end() && index.find(altindex.find(j)->second) != index.end() && index.find(game) != index.end()) {
-            string tos = altindex.find(j)->second;
-            GN* to = index.find(tos)->second;
-            GN* from = index.find(game)->second;
-            if (similar(from, to)) {
-                matrix[ind][j] = 1;
-            }
+        string tos = altindex.find(j)->second;
+        GN* to = index.find(tos)->second;
+        GN* from = index.find(game)->second;
+        //cout << ind << endl;
+        if (similar(from, to, "genre")) {
+            matrix[ind][j] = 1;
         }
+        
         
 
     }
-
+    return true;
 }
 
 
