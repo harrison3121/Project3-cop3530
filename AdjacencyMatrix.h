@@ -3,12 +3,18 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <algorithm>
 #include "GraphAdjMatrix.h" 
 #include "Bridges.h"
 #include "Array1D.h"
 #include "DataSource.h"
 using namespace std;
 using namespace bridges;
+
+
+
+
+
 
 struct GN {
     string title;
@@ -22,6 +28,7 @@ struct GN {
 };
 
 
+
 class AdjacencyMatrix {
 private:
     int counter;
@@ -29,12 +36,14 @@ private:
     map<string, vector<string>> platform_map;//map for platform value:vector of game names offered on the platform
     map<string, vector<string>> genre_map;//map for genre value: count of games in each genre
     map<string, GN*> index;
-    vector<string> altindex;
+    map<int,string> altindex;
     vector<vector<int>> matrix;//internal graph
 public:
-    void insertLink(Game game);
-    vector<string> TopThreePlatform(int option);
+    void insertGame(Game game);
+    bool similar(GN* from, GN* to);
+    //vector<string> TopThreePlatform(int option);
     void searchGame(string gameName);
+    void createEdgesOne(string game);
     GraphAdjMatrix<string, string>* generateGraph(string gameName);
     AdjacencyMatrix(int t);
 
@@ -42,74 +51,110 @@ public:
 
 AdjacencyMatrix::AdjacencyMatrix(int t) : total(t), counter(0) {
     matrix.resize(t, vector<int>(t, 0));
-    altindex.resize(total, "blank");
+    //altindex.resize(total, "blank");
+
 }
 
-void AdjacencyMatrix::insertLink(Game game) {
-
-    if (platform_map.find(game.getPlatformType()) == platform_map.end())
+void AdjacencyMatrix::searchGame(string gameName) {
+    if (index.find(gameName) == index.end())
     {
-        vector<string> temp = { game.getTitle() };
-        platform_map.insert(make_pair(game.getPlatformType(), temp));//add new platform
+        cout << "Game doesn't exist in this dataset" << endl;
+        return;
     }
     else
     {
-        platform_map[game.getPlatformType()].push_back(game.getTitle());//push game to this platform
-    }
-    //add to genre if not exist, add game name to each genre type
-    for (string genre : game.getGameGenre())
-    {
-        if (genre_map.find(genre) == genre_map.end())
+        cout << gameName << " exist in the dataset, and offered on " << index[gameName]->platforms.size() << " platforms, which are " << endl;
+        for (string pf : index[gameName]->platforms)
         {
-            vector<string> temp = { game.getTitle() };
-            genre_map.insert(make_pair(genre, temp));//add new genre
-        }
-        else
-        {
-            genre_map[genre].push_back(game.getTitle());//increment game to this genre
+            cout << pf << endl;
         }
     }
-    if (index.find(game.getTitle()) == index.end())
-    {
-        counter++;
-        altindex[counter] = game.getTitle();
-        index.insert(make_pair(game.getTitle(), new GN(game.getTitle(), game.getRating(), game.getGameGenre(), counter)));//add game node
-        index[game.getTitle()]->platforms.push_back(game.getPlatformType());//put in the platform for this game
-    }
-    else
-    {
-        index[game.getTitle()]->platforms.push_back(game.getPlatformType());//add addition platform to this game
 
-    }
-    for (string gm : platform_map[game.getPlatformType()])
-    {
-        int i = index.at(game.getTitle())->index;
-        int j = index.at(gm)->index;
-        if (index.find(game.getTitle()) == index.end())
-        {
-            matrix[i][j] == 1;
-        }
+}
 
+void AdjacencyMatrix::insertGame(Game game) {
+
+    for (auto platform : game.getPlatformType()) {
+        vector<string> v1;
+        platform_map.emplace(make_pair(platform, v1));     //fixxxxxxxxxxxxxxxxxxxxxxxxxx me
+        platform_map.at(platform).push_back(game.getTitle());   //fixxxxxxxxxxxxxxxxx me
     }
 
+    for (const auto& genre : game.getGameGenre()) {
+        vector<string> v2;
+        genre_map.emplace(make_pair(genre, v2));
+    }
+
+
+
+    vector<string> v;
+    GN* g = new GN(game.getTitle(), game.getRating(), v, counter);
+    index.emplace(game.getTitle(), g);
+    altindex.emplace(counter, game.getTitle());
+    counter++;
+    
 }
     
+bool AdjacencyMatrix::similar(GN* from, GN* to) {
+    vector<string> platforms;
+    vector<string> genres;
+    for (auto i : from->platforms) {
+        for (auto j : to->platforms) {
+            if (i == j) {
+                platforms.push_back(i);
+            }
+        }
+    }
+    for (auto i : from->genres) {
+        for (auto j : to->genres) {
+            if (i == j) {
+                genres.push_back(i);
+            }
+        }
+    }
+
+    if (platforms.size() != 0 && genres.size() != 0) {
+        return true;
+    }
+    return false;
+}
+
+void AdjacencyMatrix::createEdgesOne(string game) {
+    int ind = index.find(game)->second->index;
+    vector<int> v = matrix[ind];
+    for (int j = 0; j < total; j++) {
+        if (altindex.find(j) != altindex.end() && index.find(altindex.find(j)->second) != index.end() && index.find(game) != index.end()) {
+            string tos = altindex.find(j)->second;
+            GN* to = index.find(tos)->second;
+            GN* from = index.find(game)->second;
+            if (similar(from, to)) {
+                matrix[ind][j] = 1;
+            }
+        }
+        
+
+    }
+
+}
 
 
 GraphAdjMatrix<string, string>* AdjacencyMatrix::generateGraph(string gameName) {
     GraphAdjMatrix<string, string>* graph = new GraphAdjMatrix<string, string>();
-    for (auto gm : index){
-        int count = 0;
-        graph->addVertex(gm.first);
-        for (int j : matrix[gm.second->index])
-        {
-            count++;
-            if (j == 1) {
+    for (auto p : index) {
+        int c = 0;
+        graph->addVertex(p.first);
+        vector<int> v = matrix[p.second->index];
+        for (int j = 0; j< total; j++){
+            
+            c++;
+            if (v[j] == 1) {
+                //cout << j ;
                 graph->addVertex(altindex[j]);
-                graph->addEdge(gm.first, altindex[j], 5);
+                graph->addEdge(p.first, altindex[j], 5);
             }
         }
     }
+    
     return graph;
 }
 

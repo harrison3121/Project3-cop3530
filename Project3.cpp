@@ -72,9 +72,11 @@ int main() {
         for (int i = 0; i < 1000; i++) {
             Game game = games[i];
             //cout << games[i].getTitle() << endl;
-            g.insertLink(game);
+            g.insertGame(game);
+            
 
         }
+        g.createEdgesOne(name);
         g.searchGame(name);
         GraphAdjMatrix<string, string>* graph = g.generateGraph(name);
         bridges.setDataStructure(graph);
