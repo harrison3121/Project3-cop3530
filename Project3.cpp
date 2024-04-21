@@ -5,7 +5,9 @@
 #include <map>
 #include <stdlib.h>
 #include "AdjacencyList.h"
+#include "AdjacencyMatrix.h"
 #include "GraphAdjList.h"
+#include "GraphAdjMatrix.h"
 #include "DataSource.h"
 #include "Bridges.h"
 #include "Array1D.h"
@@ -30,12 +32,18 @@ int main() {
     //find top rating games on the same platform
     // find top rating games 
     //prompt for input game name
+    string structure;
+    cout << "1. Adjacency List" << endl << "2. Adjacency Matrix" << endl;
+    getline(cin, structure);
     string name;
-    cout << "enter game name" << endl;
-    cin >> name;
+    cout << "Enter Game Name" << endl;
+    getline(cin, name);
+    string data_size;
+    cout << "Enter Data Size in Games" << endl;
+    getline(cin, data_size);
 
     // Initialize Bridges
-    Bridges bridges(1, "shawnwang", "1204195056134");
+    Bridges bridges(1, "hlucas", "1631129020485");
 
     // Set title for visualization
     bridges.setTitle("Video Game Graph");
@@ -46,67 +54,39 @@ int main() {
     // Get the video game data
     vector<Game> games = ds.getGameData();
 
-    // Graph of video games
-    //GraphAdjList<string, string> graph;
+    if (structure == "1") {
+        AdjacencyList g;
+        for (int i = 0; i < 1000; i++) {
+            Game game = games[i];
+            //cout << games[i].getTitle() << endl;
+            g.insertLink(game);
 
-    //set of all platforms
-    //map<string, Color> platforms;
-    //// Add vertices to the graph
-    //vector<string> genres;
-    //for (int i = 0;i < 1000;i++)
-    //{
-    //    if (games[i].getTitle() == name)
-    //    {
-    //        for (string genre : games[i].getGameGenre())
-    //            genres.push_back(genre);
-    //    }
-    //}
-    AdjacencyList test;
-    for (int i = 0;i < 1000;i++) {
-        Game game = games[i];
-        test.insertLink(game);
-        //for (string genre : game.getGameGenre())
-        //{
-        //    if (count(genres.begin(), genres.end(), genre) != 0) 
-        //    {
-        //        graph.addVertex(game.getTitle(), genre);
-        //        graph.addVertex(genre);
-        //        Color color;
-        //        color.setBlue(rand() % 255);
-        //        color.setGreen(rand() % 255);
-        //        color.setRed(rand() % 255);
-        //        platforms.emplace((string)genre, color);
-        //        graph.addEdge(game.getTitle(), genre);
-        //        graph.getEdge(game.getTitle(), genre).setColor(platforms.at(genre));
-        //        graph.getVertex(genre)->setShape(STAR);
-        //        graph.getVertex(genre)->setSize(30);
-        //        graph.getVertex(genre)->setColor(brighten(platforms.at(genre), 50));
-        //        graph.getVertex(game.getTitle())->setColor(brighten(platforms.at(genre), 20));
-        //    }
-        //}
-        //graph.addVertex(game.getTitle(), game.getPlatformType());
-        //graph.addVertex(game.getPlatformType());
-        //Color color;
-        //color.setBlue(rand() % 255);
-        //color.setGreen(rand() % 255);
-        //color.setRed(rand() % 255);
-        //platforms.emplace((string)game.getPlatformType(), color);
-        //graph.addEdge(game.getTitle(), game.getPlatformType());
-        //graph.getEdge(game.getTitle(), game.getPlatformType()).setColor(platforms.at(game.getPlatformType()));
-        //graph.getVertex(game.getPlatformType())->setShape(STAR);
-        //graph.getVertex(game.getPlatformType())->setSize(30);
-        //graph.getVertex(game.getPlatformType())->setColor(brighten(platforms.at(game.getPlatformType()), 50));
-        //graph.getVertex(game.getTitle())->setColor(brighten(platforms.at(game.getPlatformType()),20));
+        }
+        g.searchGame(name);
+        GraphAdjList<string, string> graph = g.generateGraph(name);
+        bridges.setDataStructure(&graph);
+        bridges.visualize();
+    }
+    else {
+        AdjacencyMatrix g(stoi(data_size));
+        for (int i = 0; i < 1000; i++) {
+            Game game = games[i];
+            //cout << games[i].getTitle() << endl;
+            g.insertLink(game);
+
+        }
+        g.searchGame(name);
+        GraphAdjMatrix<string, string>* graph = g.generateGraph(name);
+        bridges.setDataStructure(graph);
+        bridges.visualize();
+
 
     }
-    test.searchGame(name);
-    GraphAdjList<string, string> graph = test.generateGraph(name);
 
 
 
     // Visualize the graph
-    bridges.setDataStructure(&graph);
-    bridges.visualize();
+    
 
     return 0;
 }
