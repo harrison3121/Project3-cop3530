@@ -1,9 +1,9 @@
 #pragma once
-#pragma once
 #include <string>
 #include <map>
 #include <vector>
 #include <queue>
+#include <set>
 #include "GraphAdjList.h"
 #include "DataSource.h"
 #include "Bridges.h"
@@ -17,9 +17,20 @@ struct GameNode {
     vector<string> platforms;
     float rating;
     vector<string> genres;
-    GameNode(string title, float r, vector<string> g) : title(title), rating(rating), genres(genres) {}
+    GameNode(string title, float rating, vector<string> genres) : title(title), rating(rating), genres(genres) {}
     //platform vector later gets pushed in when adding games
 };
+
+bool hasSameGenre(const vector<string>& vec1, const vector<string>& vec2)
+{
+    unordered_set<string> set1(vec1.begin(), vec1.end());
+    for (string genre : vec2)
+    {
+        if (set1.count(genre) > 0)
+            return true;
+    }
+    return false;
+}
 class AdjacencyList
 {
 private:
@@ -28,7 +39,7 @@ private:
     map<string, vector<string>> genre_map;//map for genre value: count of games in each genre
     //map<int, GameNode*> game_i;//map for game with key as int representation of game
     map<string, GameNode*> game_s;//map for game with key as string and value as int representation
-    map<string, vector<pair<string, int>>> I_graph;//internal graph
+    map<string, vector<pair<string, float>>> I_graph;//internal graph, float weight=relativeness+destination rating
 public:
     void insertLink(Game game);
     vector<string> TopThreePlatform(int option);
@@ -72,14 +83,35 @@ void AdjacencyList::insertLink(Game game)
         game_s[game.getTitle()]->platforms.push_back(game.getPlatformType());//add addition platform to this game
 
     }
+    for (string gr : game.getGameGenre())
+    {
+        cout << gr << "\t";
+    }
+    cout << game.getTitle() << endl;
     for (string gm : platform_map[game.getPlatformType()])
     {
-        if (I_graph.find(game.getTitle()) == I_graph.end())
+        cout << game.getPlatformType() << endl;
+        //if (gm == game.getTitle())
+        //    continue;
+        for (string gr : game_s[gm]->genres)
         {
-            I_graph[game.getTitle()].push_back(make_pair(gm, 5));
+            cout << gr << endl;
         }
 
+        if (game_s[gm]->genres == game.getGameGenre())
+        {
+            I_graph[game.getTitle()].push_back(make_pair(gm, 5 + game_s[gm]->rating));//5pts for matching platform and all genres + rating
+        }
+        else
+        {
+            if (hasSameGenre(game_s[gm]->genres, game.getGameGenre()))
+            {
+                I_graph[game.getTitle()].push_back(make_pair(gm, 2 + game_s[gm]->rating));//5pts for matching platform and all genres + rating;
+            }
+        }
     }
+    cout << endl;
+
 }
 vector<string> AdjacencyList::TopThreePlatform(int option)
 {
@@ -99,6 +131,7 @@ vector<string> AdjacencyList::TopThreePlatform(int option)
         }
 
     }
+    //fix me: add option 2 and 3
     int i = 0;
     for (pair<int, string> rtpair : rank)
     {
@@ -128,7 +161,7 @@ GraphAdjList<string, string> AdjacencyList::generateGraph(string gameName)
 {
     GraphAdjList<string, string> graph;
     map<string, Color> platform_colors;
-    for (pair<string, vector<pair<string, int>>> graphNode : I_graph)
+    for (pair<string, vector<pair<string, float>>> graphNode : I_graph)
     {
         graph.addVertex(graphNode.first);
         for (pair<string, int > to : graphNode.second)
