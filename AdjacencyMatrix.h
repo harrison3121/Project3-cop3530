@@ -232,13 +232,14 @@ GraphAdjMatrix<string, string>* AdjacencyMatrix::generateGraphOne(string gameNam
     GraphAdjMatrix<string, string>* graph = new GraphAdjMatrix<string, string>();
     int ind = index.find(gameName)->second->index;
     int c = 0;
-    graph->addVertex(gameName);
+    string name = index.find(gameName)->second->title;
+    graph->addVertex(name);
     for (auto t : matrix[ind]) {
         if (t == 1) {
             //cout << j ;
 
             graph->addVertex(altindex[c]);
-            graph->addEdge(gameName, altindex[c], 5);
+            graph->addEdge(name, altindex[c], 5);
         }
 
         c++;
