@@ -83,21 +83,11 @@ void AdjacencyList::insertLink(Game game)
         game_s[game.getTitle()]->platforms.push_back(game.getPlatformType());//add addition platform to this game
 
     }
-    for (string gr : game.getGameGenre())
-    {
-        cout << gr << "\t";
-    }
-    cout << game.getTitle() << endl;
+
     for (string gm : platform_map[game.getPlatformType()])
     {
-        cout << game.getPlatformType() << endl;
         //if (gm == game.getTitle())
         //    continue;
-        for (string gr : game_s[gm]->genres)
-        {
-            cout << gr << endl;
-        }
-
         if (game_s[gm]->genres == game.getGameGenre())
         {
             I_graph[game.getTitle()].push_back(make_pair(gm, 5 + game_s[gm]->rating));//5pts for matching platform and all genres + rating
@@ -110,14 +100,13 @@ void AdjacencyList::insertLink(Game game)
             }
         }
     }
-    cout << endl;
 
 }
 vector<string> AdjacencyList::TopThreePlatform(int option)
 {
-    map<int, string> rank;
+    multimap<int, string> rank;
     vector<string> rtn;
-    if (option != 1 || option != 2 || option != 3)
+    if (option != 1 && option != 2 && option != 3)
     {
         cout << "warning message" << endl;
         return {};
@@ -132,12 +121,13 @@ vector<string> AdjacencyList::TopThreePlatform(int option)
 
     }
     //fix me: add option 2 and 3
-    int i = 0;
-    for (pair<int, string> rtpair : rank)
-    {
-        if (i > 2)
-            break;
-        rtn.push_back(rtpair.second);
+
+    auto last_it = rank.rbegin(); // Iterator to the last element
+    int count = 0;
+    while (last_it != rank.rend() && count < 3) {
+        rtn.push_back(last_it->second);
+        ++last_it;
+        ++count;
     }
     return rtn;
 }
@@ -151,10 +141,6 @@ void AdjacencyList::searchGame(string gameName)
     else
     {
         cout << gameName << " exist in the dataset, and offered on " << game_s[gameName]->platforms.size() << " platforms, which are " << endl;
-        for (string pf : game_s[gameName]->platforms)
-        {
-            cout << pf << endl;
-        }
     }
 }
 GraphAdjList<string, string> AdjacencyList::generateGraph(string gameName)
