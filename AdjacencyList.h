@@ -4,6 +4,7 @@
 #include <vector>
 #include <queue>
 #include <set>
+#include <tuple>
 #include "GraphAdjList.h"
 #include "DataSource.h"
 #include "Bridges.h"
@@ -31,6 +32,24 @@ bool hasSameGenre(const vector<string>& vec1, const vector<string>& vec2)
     }
     return false;
 }
+Color getRatingColor(int rating) {
+    int r, g, b=30;
+
+    if (rating < 3) {
+        r = 255;
+        g = 0;
+    }
+    else if (rating > 8) {
+        r = 0;
+        g = 255;
+    }
+    else {
+        r = static_cast<int>(255 * (8 - rating) / 5.0);
+        g = 255 - r;
+    }
+    Color ncolor(r, g, b);
+    return ncolor;
+}
 class AdjacencyList
 {
 private:
@@ -39,14 +58,22 @@ private:
     map<string, vector<string>> genre_map;//map for genre value: count of games in each genre
     //map<int, GameNode*> game_i;//map for game with key as int representation of game
     map<string, GameNode*> game_s;//map for game with key as string and value as int representation
-    map<string, vector<pair<string, float>>> I_graph;//internal graph, float weight=relativeness+destination rating
+    map<string, vector<pair<string, pair<int, float>>>> I_graph;//internal graph, float weight=relativeness+destination rating
 public:
     void insertLink(Game game);
     vector<string> TopThreePlatform(int option);
     void searchGame(string gameName);
     GraphAdjList<string, string> generateGraph(string gameName);
     AdjacencyList() { counter = 0; }
+    ~AdjacencyList();
 };
+AdjacencyList::~AdjacencyList()
+{
+    for (auto n : game_s)
+    {
+        delete n.second;
+    }
+}
 void AdjacencyList::insertLink(Game game)
 {
     //add to platform if not exist, add game name to each platform
@@ -84,23 +111,6 @@ void AdjacencyList::insertLink(Game game)
 
     }
 
-    for (string gm : platform_map[game.getPlatformType()])
-    {
-        //if (gm == game.getTitle())
-        //    continue;
-        if (game_s[gm]->genres == game.getGameGenre())
-        {
-            I_graph[game.getTitle()].push_back(make_pair(gm, 5 + game_s[gm]->rating));//5pts for matching platform and all genres + rating
-        }
-        else
-        {
-            if (hasSameGenre(game_s[gm]->genres, game.getGameGenre()))
-            {
-                I_graph[game.getTitle()].push_back(make_pair(gm, 2 + game_s[gm]->rating));//5pts for matching platform and all genres + rating;
-            }
-        }
-    }
-
 }
 vector<string> AdjacencyList::TopThreePlatform(int option)
 {
@@ -119,6 +129,10 @@ vector<string> AdjacencyList::TopThreePlatform(int option)
             rank.insert(make_pair(pfpair.second.size(), pfpair.first));//fix me: platform with same amount of games
         }
 
+    }
+    else if (option == 2)
+    {
+        //highest avg games rating
     }
     //fix me: add option 2 and 3
 
@@ -141,26 +155,59 @@ void AdjacencyList::searchGame(string gameName)
     else
     {
         cout << gameName << " exist in the dataset, and offered on " << game_s[gameName]->platforms.size() << " platforms, which are " << endl;
+        for (string pf : game_s[gameName]->platforms)
+        {
+            cout << pf << endl;
+        }
+    }
+    cout << "i_graph[gameName]" << endl;
+    for (pair<string, pair<int, float> > p : I_graph[gameName])
+    {
+        cout << p.first << "  " << p.second.first+p.second.second<< endl;
     }
 }
 GraphAdjList<string, string> AdjacencyList::generateGraph(string gameName)
 {
+    if (game_s.find(gameName) != game_s.end())
+    {
+        for (string platform : game_s[gameName]->platforms)
+        {
+            for (string gm : platform_map[platform])
+            {
+                if (gm == gameName)
+                    continue;
+                if (game_s[gm]->genres == game_s[gameName]->genres)
+                {
+                    cout << "***************truetruesame**********************" << gm << "  " << gameName << endl;
+                    I_graph[gameName].push_back(make_pair(gm, make_pair(5, game_s[gm]->rating)));//5pts for matching platform and all genres + rating
+                }
+                else if (hasSameGenre(game_s[gm]->genres, game_s[gameName]->genres))
+                {
+                    cout << "atleast one match**************" << gm << "  " << gameName << endl;
+                    I_graph[gameName].push_back(make_pair(gm, make_pair(1, game_s[gm]->rating)));//5pts for matching platform and all genres + rating;
+                }
+            }
+        }
+    }
+
     GraphAdjList<string, string> graph;
     map<string, Color> platform_colors;
-    for (pair<string, vector<pair<string, float>>> graphNode : I_graph)
+    graph.addVertex(gameName);
+    graph.getVertex(gameName)->setShape(STAR);
+    graph.getVertex(gameName)->setSize(30);
+    for (pair<string, pair<int, float >> p : I_graph[gameName])
     {
-        graph.addVertex(graphNode.first);
-        for (pair<string, int > to : graphNode.second)
-        {
-            graph.addVertex(to.first);
-            graph.addEdge(graphNode.first, to.first);
-            Color color;
-            color.setBlue(rand() % 255);
-            color.setGreen(rand() % 255);
-            color.setRed(rand() % 255);
-            platform_colors.emplace((string)graphNode.first, color);//fix me:should be platform color not game title
-            graph.getEdge(graphNode.first, to.first).setColor(platform_colors.at(graphNode.first));
-        }
+        cout << p.first << " " << p.second.first+p.second.second << endl;
+        graph.addVertex(p.first);
+        graph.getVertex(p.first)->setSize(p.second.first*5+p.second.second*3);
+        graph.getVertex(p.first)->setColor(getRatingColor(p.second.second));
+        graph.addEdge(gameName, p.first);
+        Color color;
+        color.setBlue(rand() % 255);
+        color.setGreen(rand() % 255);
+        color.setRed(rand() % 255);
+        platform_colors.emplace((string)gameName, color);//fix me:should be platform color not game title
+        graph.getEdge(gameName, p.first).setColor(platform_colors.at(gameName));
     }
     return graph;
 }
