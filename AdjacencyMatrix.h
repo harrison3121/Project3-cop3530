@@ -73,25 +73,38 @@ void AdjacencyMatrix::searchGame(string gameName) {
 }
 
 void AdjacencyMatrix::insertGame(Game game) {
+    if (index.find(game.getTitle()) == index.end()) {
 
-    for (auto platform : game.getPlatformType()) {
         vector<string> v1;
-        platform_map.emplace(make_pair(platform, v1));     //fixxxxxxxxxxxxxxxxxxxxxxxxxx me
-        platform_map.at(platform).push_back(game.getTitle());   //fixxxxxxxxxxxxxxxxx me
+        platform_map.emplace(game.getPlatformType(), v1);   
+        platform_map.at(game.getPlatformType()).push_back(game.getTitle());   
+
+        for (const auto& genre : game.getGameGenre()) {
+            vector<string> v2;
+            genre_map.emplace(make_pair(genre, v2));
+            genre_map.at(genre).push_back(game.getTitle());
+        }
+
+        vector<string> v;
+        GN* g = new GN(game.getTitle(), game.getRating(), v, counter);
+        g->platforms.push_back(game.getPlatformType());
+        index.emplace(game.getTitle(), g);
+        altindex.emplace(counter, game.getTitle());
+        counter++;
     }
+    else {
+        vector<string> v1;
+        platform_map.emplace(game.getPlatformType(), v1);
+        platform_map.at(game.getPlatformType()).push_back(game.getTitle());
 
-    for (const auto& genre : game.getGameGenre()) {
-        vector<string> v2;
-        genre_map.emplace(make_pair(genre, v2));
+        vector<string> v;
+        GN* g = new GN(game.getTitle(), game.getRating(), v, counter);
+        g->platforms.push_back(game.getPlatformType());
+        index.emplace(game.getTitle(), g);
+        altindex.emplace(counter, game.getTitle());
+        counter++;
+
     }
-
-
-
-    vector<string> v;
-    GN* g = new GN(game.getTitle(), game.getRating(), v, counter);
-    index.emplace(game.getTitle(), g);
-    altindex.emplace(counter, game.getTitle());
-    counter++;
     
 }
     
