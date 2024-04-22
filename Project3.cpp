@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -67,7 +68,7 @@ int main() {
 
 
 
-    
+
     string structure;
     cout << "1. Adjacency List" << endl << "2. Adjacency Matrix" << endl;
     getline(cin, structure);
@@ -132,7 +133,10 @@ int main() {
     }
 
     else if (structure == "1" && search == "4") {
-
+        cout << "What factors contribute to your choice of the best platforms?" << endl;
+        cout << "1. Offer the most games\n2. Has highest average ratings of all games\n3. Offer the most games similar to your favorite game" << endl;
+        int option;
+        cin >> option;
         type = "Adjacency List";
         AdjacencyList g;
         if (stoi(data_size) > 17534) {
@@ -161,12 +165,12 @@ int main() {
         }
         if (!g.searchGameQuiet(name)) {
             cout << "Game Not Found in Dataset!!" << endl;
- 
+
         }
 
         if (stoi(data_size) < 17534) {
-            vector<string> v = g.TopThreePlatform(name);
-            cout << "The top three platforms with the most games similar to yours are:" << endl;
+            vector<string> v = g.TopThreePlatform(option);
+            cout << "The top three platforms with your choice are:" << endl;
             for (string s : v) {
                 cout << s << endl;
             }
