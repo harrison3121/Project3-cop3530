@@ -33,7 +33,7 @@ bool hasSameGenre(const vector<string>& vec1, const vector<string>& vec2)
     return false;
 }
 Color getRatingColor(int rating) {
-    int r, g, b=30;
+    int r, g, b = 30;
 
     if (rating < 3) {
         r = 255;
@@ -50,6 +50,8 @@ Color getRatingColor(int rating) {
     Color ncolor(r, g, b);
     return ncolor;
 }
+
+
 class AdjacencyList
 {
 private:
@@ -163,29 +165,35 @@ void AdjacencyList::searchGame(string gameName)
     cout << "i_graph[gameName]" << endl;
     for (pair<string, pair<int, float> > p : I_graph[gameName])
     {
-        cout << p.first << "  " << p.second.first+p.second.second<< endl;
+        cout << p.first << "  " << p.second.first + p.second.second << endl;
     }
 }
 GraphAdjList<string, string> AdjacencyList::generateGraph(string gameName)
 {
     if (game_s.find(gameName) != game_s.end())
     {
+        //int c = 0;
         for (string platform : game_s[gameName]->platforms)
         {
             for (string gm : platform_map[platform])
             {
+
+
                 if (gm == gameName)
                     continue;
                 if (game_s[gm]->genres == game_s[gameName]->genres)
                 {
-                    cout << "***************truetruesame**********************" << gm << "  " << gameName << endl;
+                    //cout << c << endl;
+                    //cout << "***************truetruesame**********************" << gm << "  " << gameName << endl;
                     I_graph[gameName].push_back(make_pair(gm, make_pair(5, game_s[gm]->rating)));//5pts for matching platform and all genres + rating
                 }
                 else if (hasSameGenre(game_s[gm]->genres, game_s[gameName]->genres))
                 {
-                    cout << "atleast one match**************" << gm << "  " << gameName << endl;
+                    //cout << c << endl;
+                    //cout << "atleast one match**************" << gm << "  " << gameName << endl;
                     I_graph[gameName].push_back(make_pair(gm, make_pair(1, game_s[gm]->rating)));//5pts for matching platform and all genres + rating;
                 }
+                //c++;
             }
         }
     }
@@ -195,11 +203,16 @@ GraphAdjList<string, string> AdjacencyList::generateGraph(string gameName)
     graph.addVertex(gameName);
     graph.getVertex(gameName)->setShape(STAR);
     graph.getVertex(gameName)->setSize(30);
+    //int i = 0;
+    vector<string> v;
     for (pair<string, pair<int, float >> p : I_graph[gameName])
     {
-        cout << p.first << " " << p.second.first+p.second.second << endl;
+        //cout << i << endl;
+        //i++;
+        v.push_back(p.first);
+        //cout << p.first << endl;// << p.second.first << " " << p.second.second << endl;
         graph.addVertex(p.first);
-        graph.getVertex(p.first)->setSize(p.second.first*5+p.second.second*3);
+        graph.getVertex(p.first)->setSize(p.second.first * 5 + p.second.second * 3);
         graph.getVertex(p.first)->setColor(getRatingColor(p.second.second));
         graph.addEdge(gameName, p.first);
         Color color;
@@ -209,5 +222,6 @@ GraphAdjList<string, string> AdjacencyList::generateGraph(string gameName)
         platform_colors.emplace((string)gameName, color);//fix me:should be platform color not game title
         graph.getEdge(gameName, p.first).setColor(platform_colors.at(gameName));
     }
+    int v1 = v.size();
     return graph;
 }
