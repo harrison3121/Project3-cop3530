@@ -39,11 +39,12 @@ int main() {
     cout << "Enter Game Name" << endl;
     getline(cin, name);
     string data_size;
-    cout << "Enter Data Size in Games" << endl;
+    cout << "Enter Data Size in Games (Max is 17534)" << endl;
     getline(cin, data_size);
 
+
     // Initialize Bridges
-    Bridges bridges(1, "hlucas", "1631129020485");
+    Bridges bridges(2, "hlucas", "1631129020485");
 
     // Set title for visualization
     bridges.setTitle("Video Game Graph");
@@ -53,7 +54,7 @@ int main() {
 
     // Get the video game data
     vector<Game> games = ds.getGameData();
-
+    
     if (structure == "1") {
         AdjacencyList g;
         for (int i = 0; i < 1000; i++) {
@@ -69,16 +70,16 @@ int main() {
     }
     else {
         AdjacencyMatrix g(stoi(data_size));
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < stoi(data_size); i++) {
             Game game = games[i];
             //cout << games[i].getTitle() << endl;
             g.insertGame(game);
+            //cout << i << endl;
             
 
         }
-        g.createEdgesOne(name);
         g.searchGame(name);
-        GraphAdjMatrix<string, string>* graph = g.generateGraph(name);
+        GraphAdjList<string, string>* graph = g.generateGraphOne(name);
         bridges.setDataStructure(graph);
         bridges.visualize();
 
@@ -86,7 +87,7 @@ int main() {
     }
 
 
-
+    system("pause");
     // Visualize the graph
     
 
