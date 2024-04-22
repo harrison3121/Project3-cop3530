@@ -16,9 +16,6 @@
 using namespace std;
 using namespace bridges;
 
-string mode = "null";
-int shr; //screen height ratio
-int swr;
 
 
 //brighten the color by adding 
