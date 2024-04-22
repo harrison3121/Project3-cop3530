@@ -5,6 +5,8 @@
 #include <map>
 #include <stdlib.h>
 #include <chrono>
+#include <ctime> 
+#include <cstdlib>
 #include "AdjacencyList.h"
 #include "AdjacencyMatrix.h"
 #include "GraphAdjList.h"
@@ -33,6 +35,30 @@ Color brighten(Color color, int degree)
 
 
 
+vector<string> genres = {
+    "Action", "Adventure", "RPG", "Strategy", "Simulation", "Sports", "Puzzle"
+};
+vector<string> platforms = {
+    "PC", "PlayStation 4", "Xbox", "Nintendo Switch", "IPhone", "PlayStation 3", "Wii" 
+};
+
+
+Game RandomGame() {
+    Game game;
+    srand((unsigned int)(time(nullptr)));
+
+    // Generate random indices to select genre and platform from the lists
+    int randomGenreIndex = rand() % genres.size();
+    int randomPlatformIndex = rand() % platforms.size();
+
+    game.setTitle(to_string((unsigned int)(time(nullptr))));
+    vector<string> v;
+    v.push_back(genres[randomGenreIndex]);
+    game.setGameGenre(v);
+    game.setPlatformType(platforms[randomPlatformIndex]);
+
+    return game;
+}
 
 int main() {
     //find top rating games on the same platform
@@ -51,7 +77,7 @@ Redo:
     cout << "3: Find Similar Games" << endl << "4: Find Best Platform" << endl;
     getline(cin, search);
     string data_size;
-    cout << "Enter Data Size in Games (Max is 17534)" << endl;
+    cout << "Enter Data Size in Games (Max is 17534, anything over is for demo with option 4)" << endl;
     getline(cin, data_size);
 
     string b, c;
@@ -107,27 +133,48 @@ Redo:
     else if (structure == "1" && search == "4") {
 
         type = "Adjacency List";
-        AdjacencyMatrix g(stoi(data_size));
-        for (int i = 0; i < stoi(data_size); i++) {
-            Game game = games[i];
-            //cout << games[i].getTitle() << endl;
-            g.insertGame(game);
-            //cout << i << endl;
+        AdjacencyList g;
+        if (stoi(data_size) > 17534) {
+            Game gm;
+            gm.setTitle(name);
+            vector<string> v = {"Adventure"};
+            gm.setGameGenre(v);
+            gm.setPlatformType("PC");
+            g.insertLink(gm);
+            int inc = 0;
+            for (int i = 0; i < stoi(data_size); i++) {
+                Game game = RandomGame();
+                g.insertLink(game);
+                //cout << inc++ << endl;
+            }
+        }
+        else {
+            for (int i = 0; i < stoi(data_size); i++) {
+                Game game = games[i];
+                //cout << games[i].getTitle() << endl;
+                g.insertLink(game);
+                //cout << i << endl;
 
 
+            }
         }
         if (!g.searchGameQuiet(name)) {
             cout << "Game Not Found in Dataset!!" << endl;
             goto Redo;
         }
-        vector<string> v = g.TopThreePlatform(name);
-        cout << "The top three platforms with the most games similar to yours are:" << endl;
-        for (string s : v) {
-            cout << s << endl;
+        
+        if (stoi(data_size) < 17534) {
+            vector<string> v = g.TopThreePlatform(name);
+            cout << "The top three platforms with the most games similar to yours are:" << endl;
+            for (string s : v) {
+                cout << s << endl;
+            }
+            GraphAdjList<string, string> graph = g.generateGraph(name);
+            bridges.setDataStructure(&graph);
+            bridges.visualize();
         }
-        GraphAdjList<string, string>* graph = g.generateGraph(name);
-        bridges.setDataStructure(graph);
-        bridges.visualize();
+
+
 
 
 
@@ -137,26 +184,46 @@ Redo:
 
         type = "Adjacency Matrix";
         AdjacencyMatrix g(stoi(data_size));
-        for (int i = 0; i < stoi(data_size); i++) {
-            Game game = games[i];
-            //cout << games[i].getTitle() << endl;
-            g.insertGame(game);
-            //cout << i << endl;
+        if (stoi(data_size) > 17534) {
+            Game gm;
+            gm.setTitle(name);
+            vector<string> v = { "Adventure" };
+            gm.setGameGenre(v);
+            gm.setPlatformType("PC");
+            g.insertGame(gm);
+            int inc = 0;
+            for (int i = 0; i < stoi(data_size); i++) {
+                Game game = RandomGame();
+                g.insertGame(game);
+                //cout << inc++ << endl;
+            }
+        }
+        else {
+            for (int i = 0; i < stoi(data_size); i++) {
+                Game game = games[i];
+                //cout << games[i].getTitle() << endl;
+                g.insertGame(game);
+                //cout << i << endl;
 
 
+            }
         }
         if (!g.searchGameQuiet(name)) {
             cout << "Game Not Found in Dataset!!" << endl;
             goto Redo;
         }
-        vector<string> v = g.TopThreePlatform(name);
-        cout << "The top three platforms with the most games similar to yours are:" << endl;
-        for (string s : v) {
-            cout << s << endl;
+        
+        if (stoi(data_size) < 17534) {
+            vector<string> v = g.TopThreePlatform(name);
+            cout << "The top three platforms with the most games similar to yours are:" << endl;
+            for (string s : v) {
+                cout << s << endl;
+            }
+            GraphAdjList<string, string>* graph = g.generateGraph(name);
+            bridges.setDataStructure(graph);
+            bridges.visualize();
         }
-        GraphAdjList<string, string>* graph = g.generateGraph(name);
-        bridges.setDataStructure(graph);
-        bridges.visualize();
+
 
 
     }
