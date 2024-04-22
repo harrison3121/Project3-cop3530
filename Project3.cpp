@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <map>
 #include <stdlib.h>
+#include <chrono>
 #include "AdjacencyList.h"
 #include "AdjacencyMatrix.h"
 #include "GraphAdjList.h"
@@ -14,6 +15,11 @@
 
 using namespace std;
 using namespace bridges;
+
+string mode = "null";
+int shr; //screen height ratio
+int swr;
+
 
 //brighten the color by adding 
 Color brighten(Color color, int degree)
@@ -28,10 +34,15 @@ Color brighten(Color color, int degree)
     return ncolor;
 }
 
+
+
+
 int main() {
     //find top rating games on the same platform
     // find top rating games 
     //prompt for input game name
+
+
     string structure;
     cout << "1. Adjacency List" << endl << "2. Adjacency Matrix" << endl;
     getline(cin, structure);
@@ -54,8 +65,11 @@ int main() {
 
     // Get the video game data
     vector<Game> games = ds.getGameData();
-    
+
+    auto start = std::chrono::high_resolution_clock::now();
+    string type;
     if (structure == "1") {
+        type = "Adjacency List";
         AdjacencyList g;
         for (int i = 0; i < stoi(data_size); i++) {
             Game game = games[i];
@@ -69,6 +83,7 @@ int main() {
         bridges.visualize();
     }
     else {
+        type = "Adjacency Matrix";
         AdjacencyMatrix g(stoi(data_size));
         for (int i = 0; i < stoi(data_size); i++) {
             Game game = games[i];
@@ -86,8 +101,13 @@ int main() {
 
     }
 
+    auto stop = std::chrono::high_resolution_clock::now(); // Stop timing
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    
+    cout << "Time taken for " << type <<": " << duration.count() << " microseconds" << endl;
 
     system("pause");
+    // Visualize the graph
     
 
     return 0;
