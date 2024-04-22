@@ -44,7 +44,7 @@ int main() {
 
 
     // Initialize Bridges
-    Bridges bridges(2, "hlucas", "1631129020485");
+    Bridges bridges(1, "hlucas", "1631129020485");
 
     // Set title for visualization
     bridges.setTitle("Video Game Graph");
@@ -57,7 +57,7 @@ int main() {
     
     if (structure == "1") {
         AdjacencyList g;
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < stoi(data_size); i++) {
             Game game = games[i];
             //cout << games[i].getTitle() << endl;
             g.insertLink(game);
@@ -88,7 +88,6 @@ int main() {
 
 
     system("pause");
-    // Visualize the graph
     
 
     return 0;
