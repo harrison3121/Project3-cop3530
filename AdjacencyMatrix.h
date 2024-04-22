@@ -59,10 +59,12 @@ private:
 public:
     void insertGame(Game game);
     int similar(GN* from, GN* to, string d);
-    //vector<string> TopThreePlatform(int option);
+    vector<string> TopThreePlatform(string game);
     bool hasSameGenre(const vector<string>& vec1, const vector<string>& vec2);
     void searchGame(string gameName);
     GraphAdjList<string, string>* generateGraphOne(string gameName);
+    GraphAdjList<string, string>* generateGraph(string gameName);
+    bool searchGameQuiet(string gameName);
     AdjacencyMatrix(int t);
 
 };
@@ -89,6 +91,18 @@ void AdjacencyMatrix::searchGame(string gameName) {
     }
 
 }
+
+
+bool AdjacencyMatrix::searchGameQuiet(string gameName) {
+    if (index.find(gameName) == index.end())
+    {
+        cout << "Game doesn't exist in this dataset" << endl;
+        return false;
+    }
+    return true;
+
+}
+
 
 void AdjacencyMatrix::insertGame(Game game) {
 
@@ -154,9 +168,87 @@ bool AdjacencyMatrix::hasSameGenre(const vector<string>& vec1, const vector<stri
 }
 
 
+vector<string> AdjacencyMatrix::TopThreePlatform(string game) {
+    vector<string> genres = index[game]->genres;
+    map<string, vector<string>> m;
+    for (auto i : platform_map) {
+
+        for (auto gm : i.second) {
+            vector<string> g2 = index[gm]->genres;
+            if (hasSameGenre(genres, g2)) {
+                m[i.first].push_back(gm);
+
+            }
+        }
+
+    }
+    vector<int> v;
+    for (auto i : m) {
+        v.push_back(i.second.size());
+    }
+    sort(v.begin(), v.end(), greater<int>());
+    if (v.size() < 3) {
+        vector<string>v2 = vector<string>();
+        return v2;
+    }
+    vector<string> m2;
+
+    for (auto i : m) {
+        if (i.second.size() >= v.at(2)) {
+            m2.push_back(i.first);
+        }
+    }
+
+    
+
+    for (auto i : m2) {
+        int b = index[game]->index;
+        for (auto gm : m[i]) {
+            matrix[b][index[gm]->index] = 1;
+        }
+    }
+
+
+    return m2;
+
+}
+
+
+GraphAdjList<string, string>* AdjacencyMatrix::generateGraph(string gameName) {
+
+    GraphAdjList<string, string>* graph = new GraphAdjList<string, string>();
+    map<string, Color> platform_colors;
+
+    int ind = index.find(gameName)->second->index;
+    int c = 0;
+    graph->addVertex(gameName);
+    graph->getVertex(gameName)->setShape(STAR);
+    graph->getVertex(gameName)->setSize(30); //input game vertex
+    for (auto t : matrix[ind]) {
+        if (t != 0) {
+            GN* to = index[altindex[c]];
+            graph->addVertex(to->title);
+            graph->getVertex(to->title)->setSize(t * 5 + to->rating * 3);
+            graph->getVertex(to->title)->setColor(RatingColor(to->rating));
+            graph->addEdge(gameName, to->title);
+            Color color;
+            color.setBlue(rand() % 255);
+            color.setGreen(rand() % 255);
+            color.setRed(rand() % 255);
+            platform_colors.emplace((string)gameName, color);
+            graph->getEdge(gameName, to->title).setColor(platform_colors.at(gameName)); //get random color for platform
+
+        }
+
+        c++;
+    }
 
 
 
+
+    return graph;
+
+}
 
 GraphAdjList<string, string>* AdjacencyMatrix::generateGraphOne(string gameName) {
 
