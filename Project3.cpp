@@ -42,20 +42,26 @@ int main() {
     // find top rating games 
     //prompt for input game name
 
+Redo:
 
-    string structure;
-    cout << "1. Adjacency List" << endl << "2. Adjacency Matrix" << endl;
-    getline(cin, structure);
     string name;
     cout << "Enter Game Name" << endl;
     getline(cin, name);
+    string structure;
+    cout << "1. Adjacency List" << endl << "2. Adjacency Matrix" << endl;
+    getline(cin, structure);
+    string search;
+    cout << "3: Find Similar Games" << endl << "4: Find Best Platform" << endl;
+    getline(cin, search);
     string data_size;
     cout << "Enter Data Size in Games (Max is 17534)" << endl;
     getline(cin, data_size);
 
-
+    string b, c;
+    cout << "Enter Bridges username and api key with one space inbetween" << endl;
+    cin >> b >> c;
     // Initialize Bridges
-    Bridges bridges(1, "hlucas", "1631129020485");
+    Bridges bridges(1, b, c);
 
     // Set title for visualization
     bridges.setTitle("Video Game Graph");
@@ -68,7 +74,7 @@ int main() {
 
     auto start = std::chrono::high_resolution_clock::now();
     string type;
-    if (structure == "1") {
+    if (structure == "1" && search == "3") {
         type = "Adjacency List";
         AdjacencyList g;
         for (int i = 0; i < stoi(data_size); i++) {
@@ -82,7 +88,7 @@ int main() {
         bridges.setDataStructure(&graph);
         bridges.visualize();
     }
-    else {
+    else if(structure == "2" && search == "3") {
         type = "Adjacency Matrix";
         AdjacencyMatrix g(stoi(data_size));
         for (int i = 0; i < stoi(data_size); i++) {
@@ -101,13 +107,72 @@ int main() {
 
     }
 
+    else if (structure == "1" && search == "4") {
+
+        type = "Adjacency List";
+        AdjacencyMatrix g(stoi(data_size));
+        for (int i = 0; i < stoi(data_size); i++) {
+            Game game = games[i];
+            //cout << games[i].getTitle() << endl;
+            g.insertGame(game);
+            //cout << i << endl;
+
+
+        }
+        if (!g.searchGameQuiet(name)) {
+            cout << "Game Not Found in Dataset!!" << endl;
+            goto Redo;
+        }
+        vector<string> v = g.TopThreePlatform(name);
+        cout << "The top three platforms with the most games similar to yours are:" << endl;
+        for (string s : v) {
+            cout << s << endl;
+        }
+        GraphAdjList<string, string>* graph = g.generateGraph(name);
+        bridges.setDataStructure(graph);
+        bridges.visualize();
+
+
+
+    }
+
+    else if (structure == "2" && search == "4") {
+
+        type = "Adjacency Matrix";
+        AdjacencyMatrix g(stoi(data_size));
+        for (int i = 0; i < stoi(data_size); i++) {
+            Game game = games[i];
+            //cout << games[i].getTitle() << endl;
+            g.insertGame(game);
+            //cout << i << endl;
+
+
+        }
+        if (!g.searchGameQuiet(name)) {
+            cout << "Game Not Found in Dataset!!" << endl;
+            goto Redo;
+        }
+        vector<string> v = g.TopThreePlatform(name);
+        cout << "The top three platforms with the most games similar to yours are:" << endl;
+        for (string s : v) {
+            cout << s << endl;
+        }
+        GraphAdjList<string, string>* graph = g.generateGraph(name);
+        bridges.setDataStructure(graph);
+        bridges.visualize();
+
+
+    }
+
+
+
+
     auto stop = std::chrono::high_resolution_clock::now(); // Stop timing
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     
     cout << "Time taken for " << type <<": " << duration.count() << " microseconds" << endl;
 
     system("pause");
-    // Visualize the graph
     
 
     return 0;
