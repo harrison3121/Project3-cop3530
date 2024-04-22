@@ -161,22 +161,23 @@ bool AdjacencyMatrix::hasSameGenre(const vector<string>& vec1, const vector<stri
 GraphAdjList<string, string>* AdjacencyMatrix::generateGraphOne(string gameName) {
 
 
-
-    GN* from = index[gameName];
-    for (string platform : from->platforms) {
-        for (string gm : platform_map[platform]) {
-            int i = index[gameName]->index;
-            int j = index[gm]->index;
-            if (gm == from->title) {
-                continue;
-            }
-            if (index[gm]->genres == index[from->title]->genres) {
-                cout << "***************truetruesame**********************" << gm << "  " << gm << endl;
-                matrix[i][j] = 1;
-            }
-            else if (hasSameGenre(index[gm]->genres, index[from->title]->genres)) {
-                cout << "atleast one match**************" << gm << "  " << gm << endl;
-                matrix[i][j] = 1;
+    if (index.find(gameName) != index.end()) {
+        GN* from = index[gameName];
+        for (string platform : from->platforms) {
+            for (string gm : platform_map[platform]) {
+                int i = index[gameName]->index;
+                int j = index[gm]->index;
+                if (gm == from->title) {
+                    continue;
+                }
+                if (index[gm]->genres == index[from->title]->genres) {
+                    //cout << "***************truetruesame**********************" << gm << "  " << gm << endl;
+                    matrix[i][j] = 5;
+                }
+                else if (hasSameGenre(index[gm]->genres, index[from->title]->genres)) {
+                    //cout << "atleast one match**************" << gm << "  " << gm << endl;
+                    matrix[i][j] = 1;
+                }
             }
         }
     }
@@ -187,20 +188,20 @@ GraphAdjList<string, string>* AdjacencyMatrix::generateGraphOne(string gameName)
     map<string, Color> platform_colors;
     int ind = index.find(gameName)->second->index;
     int c = 0;
-    int i = 0;
+    //int i = 0;
     //cout<<
     graph->addVertex(gameName);
     graph->getVertex(gameName)->setShape(STAR);
     graph->getVertex(gameName)->setSize(30);
+    
     for (auto t : matrix[ind]) {
         if (t != 0) {
-            cout << i<<endl ;
-            i++;
+            //cout << i<<endl ;
+            //i++;
             GN* to = index[altindex[c]];
             graph->addVertex(to->title);
-            double d = (1 * 5) + (to->rating * 3);
-            graph->getVertex(to->title)->setSize(d);
-            //cout <<to->title<< to->rating  << endl;
+            graph->getVertex(to->title)->setSize(t * 5 + to->rating * 3);
+            //cout <<to->title<<t<<" " << to->rating << endl;
             graph->getVertex(to->title)->setColor(RatingColor(to->rating));
             graph->addEdge(gameName, to->title);
             Color color;
