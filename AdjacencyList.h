@@ -56,14 +56,14 @@ class AdjacencyList
 {
 private:
     int counter;
-    map<string, vector<string>> platform_map;//map for platform value:vector of game names offered on the platform
+    map<string, vector<pair<string,float>>> platform_map;//map for platform value:vector of game names offered on the platform
     map<string, vector<string>> genre_map;//map for genre value: count of games in each genre
     //map<int, GameNode*> game_i;//map for game with key as int representation of game
     map<string, GameNode*> game_s;//map for game with key as string and value as int representation
     map<string, vector<pair<string, pair<int, float>>>> I_graph;//internal graph, float weight=relativeness+destination rating
 public:
     void insertLink(Game game);
-    vector<string> TopThreePlatform(string name);
+    vector<string> TopThreePlatform(int option);
     void searchGame(string gameName);
     bool searchGameQuiet(string gameName);
     GraphAdjList<string, string> generateGraphOne(string gameName);
@@ -83,12 +83,12 @@ void AdjacencyList::insertLink(Game game)
     //add to platform if not exist, add game name to each platform
     if (platform_map.find(game.getPlatformType()) == platform_map.end())
     {
-        vector<string> temp = { game.getTitle() };
+        vector<pair<string,float>> temp = { make_pair(game.getTitle(),game.getRating()) };
         platform_map.insert(make_pair(game.getPlatformType(), temp));//add new platform
     }
     else
     {
-        platform_map[game.getPlatformType()].push_back(game.getTitle());//push game to this platform
+        platform_map[game.getPlatformType()].push_back(make_pair(game.getTitle(),game.getRating()));//push game to this platform
     }
     //add to genre if not exist, add game name to each genre type
     for (string genre : game.getGameGenre())
@@ -116,55 +116,73 @@ void AdjacencyList::insertLink(Game game)
     }
 
 }
+vector<string> AdjacencyList::TopThreePlatform(int option)
+{
+    multimap<int, string> rank;
+    vector<string> rtn;
+    if (option != 1 && option != 2 && option != 3)
+    {
+        cout << "warning message" << endl;
+        return {};
+    }
+    if (option == 1)
+    {
+        //most games
+        for (pair<string, vector<pair<string,float>>> pfpair : platform_map)
+        {
+            rank.insert(make_pair(pfpair.second.size(), pfpair.first));
+        }
 
-
-
-vector<string> AdjacencyList::TopThreePlatform(string game) {
-    vector<string> genres = game_s[game]->genres;
-    map<string, vector<string>> m;
-    for (auto i : platform_map) {
-
-        for (auto gm : i.second) {
-            vector<string> g2 = game_s[gm]->genres;
-            if (hasSameGenre(genres, g2)) {
-                m[i.first].push_back(gm);
-
+    }
+    else if (option == 2)
+    {
+        //highest avg games rating
+        for (auto p : platform_map)
+        {
+            float sum = 0;
+            int i = 0;
+            for (auto g : p.second)
+            {
+                i++;
+                sum += g.second;
+            }
+            rank.insert(make_pair(sum/i, p.first));
+        }
+    }
+    else if (option == 3)
+    {
+        //top platforms with related games
+        string game;
+        cout << "Enter your favorite game name" << endl;
+        cin >> game;
+        vector<string> genres = game_s[game]->genres;
+        map<string, int> m;
+        for (auto i : platform_map) {
+            for (auto gm : i.second) {
+                if (hasSameGenre(genres, game_s[gm.first]->genres)) {
+                    if (m.find(i.first) == m.end())
+                        m[i.first] = 1;
+                    else
+                        m[i.first]++;
+                }
             }
         }
-
-    }
-    vector<int> v;
-    for (auto i : m) {
-        v.push_back(i.second.size());
-    }
-    sort(v.begin(), v.end(), greater<int>());
-    if (v.size() < 3) {
-        vector<string>v2 = vector<string>();
-        return v2;
-    }
-    vector<string> m2;
-
-    for (auto i : m) {
-        if (i.second.size() >= v.at(2)) {
-            m2.push_back(i.first);
+        for (auto i : m)
+        {
+            rank.insert(make_pair(i.second, i.first));
         }
     }
+    //fix me: add option 2 and 3
 
-
-
-    for (auto i : m2) {
-        for (auto gm : m[i]) {
-            vector<pair<string, pair<int, float>>> v = { make_pair(gm, make_pair(1, game_s[gm]->rating)) };
-            I_graph.insert(make_pair(game, v ));
-        }
+    auto last_it = rank.rbegin(); // Iterator to the last element
+    int count = 0;
+    while (last_it != rank.rend() && count < 3) {
+        rtn.push_back(last_it->second);
+        ++last_it;
+        ++count;
     }
-
-
-    return m2;
-
+    return rtn;
 }
-
-
 void AdjacencyList::searchGame(string gameName)
 {
     if (game_s.find(gameName) == game_s.end())
@@ -180,9 +198,22 @@ void AdjacencyList::searchGame(string gameName)
             cout << pf << endl;
         }
     }
-
+    //cout << i_graph[gameName] << endl;
+    for (pair<string, pair<int, float> > p : I_graph[gameName])
+    {
+        cout << p.first << "  " << p.second.first + p.second.second << endl;
+    }
 }
 
+bool AdjacencyList::searchGameQuiet(string gameName)
+{
+    if (game_s.find(gameName) == game_s.end())
+    {
+        cout << "Game doesn't exist in this dataset" << endl;
+        return false;
+    }
+    else { return true; }
+}
 GraphAdjList<string, string> AdjacencyList::generateGraphOne(string gameName)
 {
     if (game_s.find(gameName) != game_s.end())
@@ -190,23 +221,23 @@ GraphAdjList<string, string> AdjacencyList::generateGraphOne(string gameName)
         //int c = 0;
         for (string platform : game_s[gameName]->platforms)
         {
-            for (string gm : platform_map[platform])
+            for (pair<string, float> gm : platform_map[platform])
             {
 
 
-                if (gm == gameName)
+                if (gm.first == gameName)
                     continue;
-                if (game_s[gm]->genres == game_s[gameName]->genres)
+                if (game_s[gm.first]->genres == game_s[gameName]->genres)
                 {
                     //cout << c << endl;
                     //cout << "***************truetruesame**********************" << gm << "  " << gameName << endl;
-                    I_graph[gameName].push_back(make_pair(gm, make_pair(5, game_s[gm]->rating)));//5pts for matching platform and all genres + rating
+                    I_graph[gameName].push_back(make_pair(gm.first, make_pair(5, gm.second)));//5pts for matching platform and all genres + rating
                 }
-                else if (hasSameGenre(game_s[gm]->genres, game_s[gameName]->genres))
+                else if (hasSameGenre(game_s[gm.first]->genres, game_s[gameName]->genres))
                 {
                     //cout << c << endl;
                     //cout << "atleast one match**************" << gm << "  " << gameName << endl;
-                    I_graph[gameName].push_back(make_pair(gm, make_pair(1, game_s[gm]->rating)));//5pts for matching platform and all genres + rating;
+                    I_graph[gameName].push_back(make_pair(gm.first, make_pair(1, gm.second)));//5pts for matching platform and all genres + rating;
                 }
                 //c++;
             }
@@ -238,33 +269,41 @@ GraphAdjList<string, string> AdjacencyList::generateGraphOne(string gameName)
 
     return graph;
 }
-
-
-bool AdjacencyList::searchGameQuiet(string gameName)
+GraphAdjList<string, string> AdjacencyList::generateGraph(string gameName)
 {
-    if (game_s.find(gameName) == game_s.end())
+    if (game_s.find(gameName) != game_s.end())
     {
-        cout << "Game doesn't exist in this dataset" << endl;
-        return false;
+        for (string platform : game_s[gameName]->platforms)
+        {
+            for (pair<string, float> gm : platform_map[platform])
+            {
+                if (gm.first == gameName)
+                    continue;
+                if (game_s[gm.first]->genres == game_s[gameName]->genres)
+                {
+                    //cout << "***************truetruesame**********************" << gm << "  " << gameName << endl;
+                    I_graph[gameName].push_back(make_pair(gm.first, make_pair(5, gm.second)));//5pts for matching platform and all genres + rating
+                }
+                else if (hasSameGenre(game_s[gm.first]->genres, game_s[gameName]->genres))
+                {
+                    //cout << "atleast one match**************" << gm << "  " << gameName << endl;
+                    I_graph[gameName].push_back(make_pair(gm.first, make_pair(1, gm.second)));//5pts for matching platform and all genres + rating;
+                }
+            }
+        }
     }
-    else { return true; }
-
-
-}
-
-
-GraphAdjList<string, string> AdjacencyList::generateGraph(string gameName) {
 
     GraphAdjList<string, string> graph;
     map<string, Color> platform_colors;
     graph.addVertex(gameName);
     graph.getVertex(gameName)->setShape(STAR);
     graph.getVertex(gameName)->setSize(30);
-    
-
+    //int i = 0;
     for (pair<string, pair<int, float >> p : I_graph[gameName])
     {
-
+        //cout << i << endl;
+        //i++;
+        //cout << p.first << endl;// << p.second.first << " " << p.second.second << endl;
         graph.addVertex(p.first);
         graph.getVertex(p.first)->setSize(p.second.first * 5 + p.second.second * 3);
         graph.getVertex(p.first)->setColor(getRatingColor(p.second.second));
@@ -273,9 +312,8 @@ GraphAdjList<string, string> AdjacencyList::generateGraph(string gameName) {
         color.setBlue(rand() % 255);
         color.setGreen(rand() % 255);
         color.setRed(rand() % 255);
-        platform_colors.emplace((string)gameName, color);
+        platform_colors.emplace((string)gameName, color);//fix me:should be platform color not game title
         graph.getEdge(gameName, p.first).setColor(platform_colors.at(gameName));
     }
-
     return graph;
 }
