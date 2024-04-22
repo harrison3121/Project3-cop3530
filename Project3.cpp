@@ -39,7 +39,7 @@ vector<string> genres = {
     "Action", "Adventure", "RPG", "Strategy", "Simulation", "Sports", "Puzzle"
 };
 vector<string> platforms = {
-    "PC", "PlayStation 4", "Xbox", "Nintendo Switch", "IPhone", "PlayStation 3", "Wii" 
+    "PC", "PlayStation 4", "Xbox", "Nintendo Switch", "IPhone", "PlayStation 3", "Wii"
 };
 
 
@@ -65,17 +65,18 @@ int main() {
     // find top rating games 
     //prompt for input game name
 
-Redo:
 
-    string name;
-    cout << "Enter Game Name" << endl;
-    getline(cin, name);
+
+    
     string structure;
     cout << "1. Adjacency List" << endl << "2. Adjacency Matrix" << endl;
     getline(cin, structure);
     string search;
     cout << "3: Find Similar Games" << endl << "4: Find Best Platform" << endl;
     getline(cin, search);
+    string name;
+    cout << "Enter Game Name" << endl;
+    getline(cin, name);
     string data_size;
     cout << "Enter Data Size in Games (Max is 17534, anything over is for demo with option 4)" << endl;
     getline(cin, data_size);
@@ -111,7 +112,7 @@ Redo:
         bridges.setDataStructure(&graph);
         bridges.visualize();
     }
-    else if(structure == "2" && search == "3") {
+    else if (structure == "2" && search == "3") {
         type = "Adjacency Matrix";
         AdjacencyMatrix g(stoi(data_size));
         for (int i = 0; i < stoi(data_size); i++) {
@@ -119,7 +120,7 @@ Redo:
             //cout << games[i].getTitle() << endl;
             g.insertGame(game);
             //cout << i << endl;
-            
+
 
         }
         g.searchGame(name);
@@ -137,7 +138,7 @@ Redo:
         if (stoi(data_size) > 17534) {
             Game gm;
             gm.setTitle(name);
-            vector<string> v = {"Adventure"};
+            vector<string> v = { "Adventure" };
             gm.setGameGenre(v);
             gm.setPlatformType("PC");
             g.insertLink(gm);
@@ -160,9 +161,9 @@ Redo:
         }
         if (!g.searchGameQuiet(name)) {
             cout << "Game Not Found in Dataset!!" << endl;
-            goto Redo;
+ 
         }
-        
+
         if (stoi(data_size) < 17534) {
             vector<string> v = g.TopThreePlatform(name);
             cout << "The top three platforms with the most games similar to yours are:" << endl;
@@ -210,9 +211,9 @@ Redo:
         }
         if (!g.searchGameQuiet(name)) {
             cout << "Game Not Found in Dataset!!" << endl;
-            goto Redo;
+
         }
-        
+
         if (stoi(data_size) < 17534) {
             vector<string> v = g.TopThreePlatform(name);
             cout << "The top three platforms with the most games similar to yours are:" << endl;
@@ -233,11 +234,11 @@ Redo:
 
     auto stop = std::chrono::high_resolution_clock::now(); // Stop timing
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    
-    cout << "Time taken for " << type <<": " << duration.count() << " microseconds" << endl;
+
+    cout << "Time taken for " << type << ": " << duration.count() << " microseconds" << endl;
 
     system("pause");
-    
+
 
     return 0;
 }
