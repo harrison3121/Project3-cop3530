@@ -163,6 +163,7 @@ GraphAdjList<string, string>* AdjacencyMatrix::generateGraphOne(string gameName)
 
     if (index.find(gameName) != index.end()) {
         GN* from = index[gameName];
+        int c = 0;
         for (string platform : from->platforms) {
             for (string gm : platform_map[platform]) {
                 int i = index[gameName]->index;
@@ -170,14 +171,20 @@ GraphAdjList<string, string>* AdjacencyMatrix::generateGraphOne(string gameName)
                 if (gm == from->title) {
                     continue;
                 }
+
+
+
                 if (index[gm]->genres == index[from->title]->genres) {
+                    //cout << c << endl;
                     //cout << "***************truetruesame**********************" << gm << "  " << gm << endl;
                     matrix[i][j] = 5;
                 }
                 else if (hasSameGenre(index[gm]->genres, index[from->title]->genres)) {
+                    //cout << c << endl;
                     //cout << "atleast one match**************" << gm << "  " << gm << endl;
                     matrix[i][j] = 1;
                 }
+                c++;
             }
         }
     }
@@ -193,15 +200,17 @@ GraphAdjList<string, string>* AdjacencyMatrix::generateGraphOne(string gameName)
     graph->addVertex(gameName);
     graph->getVertex(gameName)->setShape(STAR);
     graph->getVertex(gameName)->setSize(30);
-    
+    vector<string> v;
     for (auto t : matrix[ind]) {
         if (t != 0) {
             //cout << i<<endl ;
             //i++;
+            
             GN* to = index[altindex[c]];
+            v.push_back(to->title);
             graph->addVertex(to->title);
             graph->getVertex(to->title)->setSize(t * 5 + to->rating * 3);
-            //cout <<to->title<<t<<" " << to->rating << endl;
+            //cout << to->title<<endl;//<<t<<" " << to->rating << endl;
             graph->getVertex(to->title)->setColor(RatingColor(to->rating));
             graph->addEdge(gameName, to->title);
             Color color;
@@ -215,7 +224,7 @@ GraphAdjList<string, string>* AdjacencyMatrix::generateGraphOne(string gameName)
 
         c++;
     }
-
+    int v1 = v.size();
     return graph;
 }
 
