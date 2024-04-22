@@ -15,7 +15,24 @@ using namespace bridges;
 
 
 
+Color RatingColor(int rating) {
+    int r, g, b = 30;
 
+    if (rating < 3) {
+        r = 255;
+        g = 0;
+    }
+    else if (rating > 8) {
+        r = 0;
+        g = 255;
+    }
+    else {
+        r = static_cast<int>(255 * (8 - rating) / 5.0);
+        g = 255 - r;
+    }
+    Color ncolor(r, g, b);
+    return ncolor;
+}
 
 struct GN {
     string title;
@@ -45,8 +62,6 @@ public:
     //vector<string> TopThreePlatform(int option);
     bool hasSameGenre(const vector<string>& vec1, const vector<string>& vec2);
     void searchGame(string gameName);
-    bool createEdgesOne(string game, string d);
-    GraphAdjList<string, string>* generateGraph(string gameName);
     GraphAdjList<string, string>* generateGraphOne(string gameName);
     AdjacencyMatrix(int t);
 
@@ -78,8 +93,7 @@ void AdjacencyMatrix::searchGame(string gameName) {
 void AdjacencyMatrix::insertGame(Game game) {
 
 
-    vector<string> v;
-    GN* g = new GN(game.getTitle(), game.getRating(), v, counter);
+    
 
     if (platform_map.find(game.getPlatformType()) == platform_map.end())
     {
@@ -106,11 +120,14 @@ void AdjacencyMatrix::insertGame(Game game) {
     //g->platforms.emplace(game.getPlatformType());
     
     //index.emplace(game.getTitle(), g);
+
+    vector<string> v;
+    GN* g = new GN(game.getTitle(), game.getRating(), v, counter);
     altindex.emplace(counter, game.getTitle());
         
     if (index.find(game.getTitle()) == index.end())
     {
-        index.emplace(game.getTitle(), g);//add game node
+        index.insert(make_pair(game.getTitle(), new GN(game.getTitle(), game.getRating(), game.getGameGenre(), counter)));;//add game node
         index[game.getTitle()]->platforms.push_back(game.getPlatformType());//put in the platform for this game
     }
     else
@@ -138,79 +155,60 @@ bool AdjacencyMatrix::hasSameGenre(const vector<string>& vec1, const vector<stri
 
 
 
-bool AdjacencyMatrix::createEdgesOne(string game, string d) {
-    if (index.find(game) == index.end()) {
-        return false;
-    }
-    GN* from = index[game];
+
+
+
+GraphAdjList<string, string>* AdjacencyMatrix::generateGraphOne(string gameName) {
+
+
+
+    GN* from = index[gameName];
     for (string platform : from->platforms) {
         for (string gm : platform_map[platform]) {
-            int i = index[game]->index;
+            int i = index[gameName]->index;
             int j = index[gm]->index;
             if (gm == from->title) {
                 continue;
             }
             if (index[gm]->genres == index[from->title]->genres) {
-                //cout << "***************truetruesame**********************" << gm << "  " << gm << endl;
-                matrix[i][j] = 5;
+                cout << "***************truetruesame**********************" << gm << "  " << gm << endl;
+                matrix[i][j] = 1;
             }
             else if (hasSameGenre(index[gm]->genres, index[from->title]->genres)) {
-                //cout << "atleast one match**************" << gm << "  " << gm << endl;
+                cout << "atleast one match**************" << gm << "  " << gm << endl;
                 matrix[i][j] = 1;
             }
         }
     }
-      
-
-    return true;
-}
 
 
-GraphAdjList<string, string>* AdjacencyMatrix::generateGraph(string gameName) {
-    GraphAdjList<string, string>* graph = new GraphAdjList<string, string>();
-    map<string, Color> platform_colors;
-    for (auto p : index) {
-        int c = 0;
-        graph->addVertex(p.first);
-        vector<int> v = matrix[p.second->index];
-        for (int j = 0; j< total; j++){
-            
-            c++;
-            if (v[j] == 1) {
-                //cout << j ;
-                
-                graph->addVertex(altindex[j]);
-                graph->addEdge(p.first, altindex[j]);
-            }
-        }
-    }
-    
-    return graph;
-}
 
-GraphAdjList<string, string>* AdjacencyMatrix::generateGraphOne(string gameName) {
     GraphAdjList<string, string>* graph = new GraphAdjList<string, string>();
     map<string, Color> platform_colors;
     int ind = index.find(gameName)->second->index;
     int c = 0;
+    int i = 0;
     //cout<<
     graph->addVertex(gameName);
     graph->getVertex(gameName)->setShape(STAR);
     graph->getVertex(gameName)->setSize(30);
     for (auto t : matrix[ind]) {
         if (t != 0) {
-            //cout << c<<endl ;
+            cout << i<<endl ;
+            i++;
             GN* to = index[altindex[c]];
-            graph->addVertex(altindex[c]);
-            graph->getVertex(altindex[c])->setSize(t*5+to->rating*3);
-            graph->getVertex(altindex[c])->setColor(getRatingColor(to->rating));
-            graph->addEdge(gameName, altindex[c]);
+            graph->addVertex(to->title);
+            double d = (1 * 5) + (to->rating * 3);
+            graph->getVertex(to->title)->setSize(d);
+            //cout <<to->title<< to->rating  << endl;
+            graph->getVertex(to->title)->setColor(RatingColor(to->rating));
+            graph->addEdge(gameName, to->title);
             Color color;
             color.setBlue(rand() % 255);
             color.setGreen(rand() % 255);
             color.setRed(rand() % 255);
             platform_colors.emplace((string)gameName, color);
-            graph->getEdge(gameName, altindex[c]).setColor(platform_colors.at(gameName));
+            graph->getEdge(gameName, to->title).setColor(platform_colors.at(gameName));
 
         }
 
