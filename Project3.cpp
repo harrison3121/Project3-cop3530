@@ -62,13 +62,9 @@ Game RandomGame() {
 }
 
 int main() {
-    //find top rating games on the same platform
-    // find top rating games 
-    //prompt for input game name
-
-
-
-
+    cout << "      Welcome to GameFinder CLI" << endl
+        << "             --  your gateway to discovering the perfect gaming platform for your next adventure!" << endl
+        <<"-------------------------------------------------------------------------------------------------------"<<endl;
     string structure;
     cout << "1. Adjacency List" << endl << "2. Adjacency Matrix" << endl;
     getline(cin, structure);
@@ -121,15 +117,11 @@ int main() {
             //cout << games[i].getTitle() << endl;
             g.insertGame(game);
             //cout << i << endl;
-
-
         }
         g.searchGame(name);
         GraphAdjList<string, string>* graph = g.generateGraphOne(name);
         bridges.setDataStructure(graph);
         bridges.visualize();
-
-
     }
 
     else if (structure == "1" && search == "4") {
@@ -138,6 +130,7 @@ int main() {
         int option;
         cin >> option;
         type = "Adjacency List";
+        start = std::chrono::high_resolution_clock::now();
         AdjacencyList g;
         if (stoi(data_size) > 17534) {
             Game gm;
@@ -159,13 +152,10 @@ int main() {
                 //cout << games[i].getTitle() << endl;
                 g.insertLink(game);
                 //cout << i << endl;
-
-
             }
         }
         if (!g.searchGameQuiet(name)) {
             cout << "Game Not Found in Dataset!!" << endl;
-
         }
 
         if (stoi(data_size) < 17534) {
@@ -178,11 +168,6 @@ int main() {
             bridges.setDataStructure(&graph);
             bridges.visualize();
         }
-
-
-
-
-
     }
 
     else if (structure == "2" && search == "4") {
@@ -209,8 +194,6 @@ int main() {
                 //cout << games[i].getTitle() << endl;
                 g.insertGame(game);
                 //cout << i << endl;
-
-
             }
         }
         if (!g.searchGameQuiet(name)) {
@@ -228,18 +211,13 @@ int main() {
             bridges.setDataStructure(graph);
             bridges.visualize();
         }
-
-
-
     }
-
-
 
 
     auto stop = std::chrono::high_resolution_clock::now(); // Stop timing
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
 
-    cout << "Time taken for " << type << ": " << duration.count() << " microseconds" << endl;
+    cout << "Time taken for " << type << ": " << duration.count() << " microseconds (" << duration.count() / 1000000 <<" seconds)"<< endl;
 
     system("pause");
 
